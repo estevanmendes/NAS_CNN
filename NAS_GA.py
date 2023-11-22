@@ -2,12 +2,9 @@ import tensorflow as tf
 import pandas as pd
 import os
 import numpy as np
-import matplotlib.pyplot as plt
 import datetime
 # os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 from deap import base, creator,tools,algorithms
-import matplotlib.pyplot as plt
-import networkx
 import json
 
 np.random.seed(1234)

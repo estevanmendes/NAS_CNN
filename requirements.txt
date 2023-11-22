@@ -2,4 +2,3 @@ tensorflow
 pandas
 numpy
 deap
-json
