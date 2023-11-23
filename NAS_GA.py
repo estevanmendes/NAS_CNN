@@ -3,9 +3,11 @@ import pandas as pd
 import os
 import numpy as np
 import datetime
-# os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 from deap import base, creator,tools,algorithms
 import json
+
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+
 
 np.random.seed(1234)
 
@@ -421,5 +423,6 @@ def main():
 
 
 if __name__=="__main__":
+    print('starting')
     testing=False
     main()
