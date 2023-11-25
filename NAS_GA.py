@@ -5,16 +5,14 @@ import numpy as np
 import datetime
 from deap import base, creator,tools,algorithms
 import json
-
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
-
+import sys
+import random
 
 np.random.seed(1234)
 
 from typing import Any
 
-def main():
-
+def load_datasets():
     class Dataframe2ImageDataset:
         @staticmethod
         def load_image(filepath):
@@ -39,10 +37,10 @@ def main():
 
     training_dataset=Dataframe2ImageDataset(trainning_df,'path','binary_label_code').create_dataset()
     validation_dataset=Dataframe2ImageDataset(validation_df,'path','binary_label_code').create_dataset()
-    testing_df_dataset=Dataframe2ImageDataset(testing_df,'path','binary_label_code').create_dataset()
+    testing_dataset=Dataframe2ImageDataset(testing_df,'path','binary_label_code').create_dataset()
+    return training_dataset,validation_dataset,testing_dataset
 
-        
-    max_depths=15
+def individuals(max_depth=15):
     pool_of_features={1:{'layer':tf.keras.layers.Conv2D,
                         'params':{'filters':64,'kernel_size':5,'strides':1,'padding':'valid','activation':'relu'}},
                     2:{'layer':tf.keras.layers.Conv2D,
@@ -120,221 +118,280 @@ def main():
 
     pool_of_features_probability=np.array([3,3,3,3,3,3,3,3,3,3,3,3,3,3,20,3,3,3,3,3,3,3,3,9,3,3,3,3,3,3,3,3,20,2,2,2])
     pool_of_features_probability=pool_of_features_probability/pool_of_features_probability.sum()
+    return pool_of_features,pool_of_features_probability
 
-    def check_flatten_need(model:tf.keras.Sequential,layer_to_be_add:tf.keras.layers,debug=False)->tf.keras.Sequential:
-        
-        """
-            Checks if it is required to add a flatten layern, in order of connect dense layers into Convolutional and Maxpooling layers.
-        """
-        assert 'dense' not in tf.keras.layers.BatchNormalization.__doc__.lower()[:30]
-        assert 'dense' not in tf.keras.layers.Conv2D.__doc__.lower()[:30]
-        assert 'dense' not in tf.keras.layers.MaxPooling2D.__doc__.lower()[:30]
-        assert 'dense' not in tf.keras.layers.GlobalAvgPool2D.__doc__.lower()[:30]
-        assert 'dense' in tf.keras.layers.Dense.__doc__.lower()[:30]
+def check_flatten_need(model:tf.keras.Sequential,layer_to_be_add:tf.keras.layers,debug=False)->tf.keras.Sequential:
+    
+    """
+        Checks if it is required to add a flatten layern, in order of connect dense layers into Convolutional and Maxpooling layers.
+    """
+    assert 'dense' not in tf.keras.layers.BatchNormalization.__doc__.lower()[:30]
+    assert 'dense' not in tf.keras.layers.Conv2D.__doc__.lower()[:30]
+    assert 'dense' not in tf.keras.layers.MaxPooling2D.__doc__.lower()[:30]
+    assert 'dense' not in tf.keras.layers.GlobalAvgPool2D.__doc__.lower()[:30]
+    assert 'dense' in tf.keras.layers.Dense.__doc__.lower()[:30]
 
-        assert 'conv' not in tf.keras.layers.BatchNormalization.__doc__.lower()[:30]
-        assert 'conv' in tf.keras.layers.Conv2D.__doc__.lower()[:30]
-        assert 'conv' not in tf.keras.layers.MaxPooling2D.__doc__.lower()[:30]
-        assert 'conv' not in tf.keras.layers.GlobalAvgPool2D.__doc__.lower()[:30]
-        assert 'conv' not in tf.keras.layers.Dense.__doc__.lower()[:30]
+    assert 'conv' not in tf.keras.layers.BatchNormalization.__doc__.lower()[:30]
+    assert 'conv' in tf.keras.layers.Conv2D.__doc__.lower()[:30]
+    assert 'conv' not in tf.keras.layers.MaxPooling2D.__doc__.lower()[:30]
+    assert 'conv' not in tf.keras.layers.GlobalAvgPool2D.__doc__.lower()[:30]
+    assert 'conv' not in tf.keras.layers.Dense.__doc__.lower()[:30]
 
-        assert 'pool' not in tf.keras.layers.BatchNormalization.__doc__.lower()[:30]
-        assert 'pool' not in tf.keras.layers.Conv2D.__doc__.lower()[:30]
-        assert 'pool' in tf.keras.layers.MaxPooling2D.__doc__.lower()[:30]
-        assert 'pool' in tf.keras.layers.GlobalAvgPool2D.__doc__.lower()[:30]
-        assert 'pool' not in tf.keras.layers.Dense.__doc__.lower()[:30]
-        
-        if debug:
-            print('layer to add :',layer_to_be_add)
-        layers=model.layers
-        if len(layers)>1:
-            if 'dense' in layer_to_be_add.__doc__.lower()[:30]:
-                for previus_layer in np.flip(layers):
-                    if 'dense' in previus_layer.__doc__.lower()[:30] or 'flat' in previus_layer.__doc__.lower()[:30] :
-                        break
-                    elif ('conv' in previus_layer.__doc__.lower()[:30] or 'pool' in previus_layer.__doc__.lower()[:30]):
-                        model.add(tf.keras.layers.Flatten())
-                        break
-        return model
-
-    def architecture_feaseable(individual,debug=False):
-        """
-        creates the model indicated by the individual. 
-        """
-        model=tf.keras.Sequential()
-        non_empty_layer=0
-        for (index,gene) in enumerate(individual):
-            layer_details=pool_of_features[gene]      
-            
-                
-            if layer_details['layer'] is not None:
-                
-                if non_empty_layer==0:
-                    layer_details['params']['input_shape']=(100,100,3)
-                    layer=layer_details['layer'](**layer_details['params'])
-                else:
-                    model=check_flatten_need(model,layer,debug=debug)
-                    layer=layer_details['layer'](**layer_details['params'])
-                
-                try:            
-                    model.add(layer)
-                except ValueError:
-                    model=None
+    assert 'pool' not in tf.keras.layers.BatchNormalization.__doc__.lower()[:30]
+    assert 'pool' not in tf.keras.layers.Conv2D.__doc__.lower()[:30]
+    assert 'pool' in tf.keras.layers.MaxPooling2D.__doc__.lower()[:30]
+    assert 'pool' in tf.keras.layers.GlobalAvgPool2D.__doc__.lower()[:30]
+    assert 'pool' not in tf.keras.layers.Dense.__doc__.lower()[:30]
+    
+    if debug:
+        print('layer to add :',layer_to_be_add)
+    layers=model.layers
+    if len(layers)>1:
+        if 'dense' in layer_to_be_add.__doc__.lower()[:30]:
+            for previus_layer in np.flip(layers):
+                if 'dense' in previus_layer.__doc__.lower()[:30] or 'flat' in previus_layer.__doc__.lower()[:30] :
                     break
+                elif ('conv' in previus_layer.__doc__.lower()[:30] or 'pool' in previus_layer.__doc__.lower()[:30]):
+                    model.add(tf.keras.layers.Flatten())
+                    break
+    return model
 
-        if model is None:
-            return [-1]*len(individual)
-        else:
-            return individual
+def architecture_feaseable(pool_of_features,individual,debug=False):
+    """
+    creates the model indicated by the individual. 
+    """
+    model=tf.keras.Sequential()
+    non_empty_layer=0
+    for (index,gene) in enumerate(individual):
+        layer_details=pool_of_features[gene]      
+        
+            
+        if layer_details['layer'] is not None:
+            
+            if non_empty_layer==0:
+                layer_details['params']['input_shape']=(100,100,3)
+                layer=layer_details['layer'](**layer_details['params'])
+            else:
+                model=check_flatten_need(model,layer,debug=debug)
+                layer=layer_details['layer'](**layer_details['params'])
+            
+            try:            
+                model.add(layer)
+            except ValueError:
+                model=None
+                break
 
-    if not os.path.isfile('arquiteturas_validas.json'):    
-        pool_individuals=np.random.choice(list(pool_of_features.keys()),size=(1000,max_depths),p=pool_of_features_probability)
+    if model is None:
+        return [-1]*len(individual)
+    else:
+        return individual
+
+
+def generate_individuals(pool_of_features,pool_of_features_probability,max_depth):
+        pool_individuals=np.random.choice(list(pool_of_features.keys()),size=(1000,max_depth),p=pool_of_features_probability)
         pool_individuals_valids=[]
         for ind in pool_individuals:   
-            pool_individuals_valids.append(architecture_feaseable(ind))
+            pool_individuals_valids.append(architecture_feaseable(pool_of_features=pool_of_features,individual=ind))
 
         pool_individuals_valids=np.array(pool_individuals_valids)
         pool_individuals_valids=pool_individuals_valids[np.where(pool_individuals_valids.sum(axis=1)>0)[0]]
 
-        with open('arquiteturas_validas.json','+w') as f:
+        with open(f'arquiteturas_validas_max_depth_{max_depth}.json','+w') as f:
             json.dump(pool_individuals_valids.tolist(),f)
 
-
-    space_checked={}
-
-    def get_random_layer()->tf.keras.layers:
-        """ selects one random layer from the pool of features"""
-        layer_index=np.random.choice(list(pool_of_features.keys()),1,p=pool_of_features_probability)[0]
-        layer_details=pool_of_features[layer_index]
-        if layer_details['layer'] is not None:
-            layer=layer_details['layer'](**layer_details['params'])
-        else:
-            layer=get_random_layer()
-            
+def get_random_layer()->tf.keras.layers:
+    """ selects one random layer from the pool of features"""
+    layer_index=np.random.choice(list(pool_of_features.keys()),1,p=pool_of_features_probability)[0]
+    layer_details=pool_of_features[layer_index]
+    if layer_details['layer'] is not None:
+        layer=layer_details['layer'](**layer_details['params'])
+    else:
+        layer=get_random_layer()
         
-        return layer
+    
+    return layer
 
-    def check_dimension_compatibility(model:tf.keras.Sequential,layer:tf.keras.layers,debug=False) -> tf.keras.layers:
-        """
-        checks if it is feasible to add the intended layer 
-        """
-        try:
-            ### dumb way of check compatibilty
-            model.add(layer)
-            model.pop()
-            
-        except ValueError:
-            if debug:
-                print('Dimension compatibility error')
-
-            layer=get_random_layer()
-            layer=check_dimension_compatibility(model,layer)
-
-        if debug:
-            print('dimension outcome:',layer)
-
-        return layer
-
-    def check_flatten_need(model:tf.keras.Sequential,layer_to_be_add:tf.keras.layers,debug=False)->tf.keras.Sequential:
-        
-        """
-            Checks if it is required to add a flatten layern, in order of connect dense layers into Convolutional and Maxpooling layers.
-        """
-        assert 'dense' not in tf.keras.layers.BatchNormalization.__doc__.lower()[:30]
-        assert 'dense' not in tf.keras.layers.Conv2D.__doc__.lower()[:30]
-        assert 'dense' not in tf.keras.layers.MaxPooling2D.__doc__.lower()[:30]
-        assert 'dense' not in tf.keras.layers.GlobalAvgPool2D.__doc__.lower()[:30]
-        assert 'dense' in tf.keras.layers.Dense.__doc__.lower()[:30]
-
-        assert 'conv' not in tf.keras.layers.BatchNormalization.__doc__.lower()[:30]
-        assert 'conv' in tf.keras.layers.Conv2D.__doc__.lower()[:30]
-        assert 'conv' not in tf.keras.layers.MaxPooling2D.__doc__.lower()[:30]
-        assert 'conv' not in tf.keras.layers.GlobalAvgPool2D.__doc__.lower()[:30]
-        assert 'conv' not in tf.keras.layers.Dense.__doc__.lower()[:30]
-
-        assert 'pool' not in tf.keras.layers.BatchNormalization.__doc__.lower()[:30]
-        assert 'pool' not in tf.keras.layers.Conv2D.__doc__.lower()[:30]
-        assert 'pool' in tf.keras.layers.MaxPooling2D.__doc__.lower()[:30]
-        assert 'pool' in tf.keras.layers.GlobalAvgPool2D.__doc__.lower()[:30]
-        assert 'pool' not in tf.keras.layers.Dense.__doc__.lower()[:30]
-        
-        if debug:
-            print('layer to add :',layer_to_be_add)
-        layers=model.layers
-        if len(layers)>1:
-            if 'dense' in layer_to_be_add.__doc__.lower()[:30]:
-                for previus_layer in np.flip(layers):
-                    if 'dense' in previus_layer.__doc__.lower()[:30] or 'flat' in previus_layer.__doc__.lower()[:30] :
-                        break
-                    elif ('conv' in previus_layer.__doc__.lower()[:30] or 'pool' in previus_layer.__doc__.lower()[:30]):
-                        model.add(tf.keras.layers.Flatten())
-                        break
-        return model
-
-    def create_model(individual,debug=False):
-        """
-        creates the model indicated by the individual. 
-        """
-        model=tf.keras.Sequential()
-        non_empty_layer=0
-        for (index,gene) in enumerate(individual):
-            layer_details=pool_of_features[gene]      
-                        
-            if layer_details['layer'] is not None:
-                
-                if non_empty_layer==0:
-                    layer_details['params']['input_shape']=(100,100,3)
-                    layer=layer_details['layer'](**layer_details['params'])
-                else:
-                    layer=layer_details['layer'](**layer_details['params'])
-                    model=check_flatten_need(model,layer,debug=debug)
-                    layer=layer_details['layer'](**layer_details['params'])
-                    layer=check_dimension_compatibility(model,layer,debug=debug)
-                
-                model.add(layer)
-                non_empty_layer+=1   
-
-                
-        layer=tf.keras.layers.Dense(2,activation='softmax')
-        model=check_flatten_need(model,layer)
+def check_dimension_compatibility(model:tf.keras.Sequential,layer:tf.keras.layers,debug=False) -> tf.keras.layers:
+    """
+    checks if it is feasible to add the intended layer 
+    """
+    try:
+        ### dumb way of check compatibilty
         model.add(layer)
-        if debug:
-                print('model stack:',*model.layers,sep='\n')
-
-        learning_rate=tf.optimizers.schedules.ExponentialDecay(initial_learning_rate=.1,decay_steps=10000.,decay_rate=0.95)
-        opt=tf.optimizers.SGD(learning_rate=learning_rate)
-        model.compile(optimizer=opt, loss=tf.metrics.mse,metrics=tf.metrics.AUC(name='auc'))
+        model.pop()
         
-        return model
+    except ValueError:
+        if debug:
+            print('Dimension compatibility error')
 
-    def train_model(model:tf.keras.Sequential,individual,verbose=0)-> tf.keras.Sequential:
-        if str(individual) not in space_checked.keys():
-            log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-            tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
-            callback = tf.keras.callbacks.EarlyStopping(monitor='val_auc', patience=3)
-            model.fit(training_dataset.batch(10),validation_data=validation_dataset.batch(10),epochs=20,verbose=verbose,callbacks=[callback,tensorboard_callback])   
-            space_checked[str(individual)]=model
-        else:
-            model=space_checked[str(individual)]
+        layer=get_random_layer()
+        layer=check_dimension_compatibility(model,layer)
 
-        return model
+    if debug:
+        print('dimension outcome:',layer)
 
-    def evaluate_model(model:tf.keras.Sequential,verbose=0)->float:
-        _,metric=model.evaluate(testing_df_dataset.batch(32),verbose=verbose)
-        return metric
+    return layer
+
+def check_flatten_need(model:tf.keras.Sequential,layer_to_be_add:tf.keras.layers,debug=False)->tf.keras.Sequential:
+    
+    """
+        Checks if it is required to add a flatten layern, in order of connect dense layers into Convolutional and Maxpooling layers.
+    """
+    assert 'dense' not in tf.keras.layers.BatchNormalization.__doc__.lower()[:30]
+    assert 'dense' not in tf.keras.layers.Conv2D.__doc__.lower()[:30]
+    assert 'dense' not in tf.keras.layers.MaxPooling2D.__doc__.lower()[:30]
+    assert 'dense' not in tf.keras.layers.GlobalAvgPool2D.__doc__.lower()[:30]
+    assert 'dense' in tf.keras.layers.Dense.__doc__.lower()[:30]
+
+    assert 'conv' not in tf.keras.layers.BatchNormalization.__doc__.lower()[:30]
+    assert 'conv' in tf.keras.layers.Conv2D.__doc__.lower()[:30]
+    assert 'conv' not in tf.keras.layers.MaxPooling2D.__doc__.lower()[:30]
+    assert 'conv' not in tf.keras.layers.GlobalAvgPool2D.__doc__.lower()[:30]
+    assert 'conv' not in tf.keras.layers.Dense.__doc__.lower()[:30]
+
+    assert 'pool' not in tf.keras.layers.BatchNormalization.__doc__.lower()[:30]
+    assert 'pool' not in tf.keras.layers.Conv2D.__doc__.lower()[:30]
+    assert 'pool' in tf.keras.layers.MaxPooling2D.__doc__.lower()[:30]
+    assert 'pool' in tf.keras.layers.GlobalAvgPool2D.__doc__.lower()[:30]
+    assert 'pool' not in tf.keras.layers.Dense.__doc__.lower()[:30]
+    
+    if debug:
+        print('layer to add :',layer_to_be_add)
+    layers=model.layers
+    if len(layers)>0:
+        if 'dense' in layer_to_be_add.__doc__.lower()[:30]:
+            for previus_layer in np.flip(layers):
+                if 'dense' in previus_layer.__doc__.lower()[:30] or 'flat' in previus_layer.__doc__.lower()[:30] :
+                    break
+                elif ('conv' in previus_layer.__doc__.lower()[:30] or 'pool' in previus_layer.__doc__.lower()[:30]):
+                    model.add(tf.keras.layers.Flatten())
+                    break
+    return model
+
+def create_model(pool_of_features,individual,debug=False):
+    """
+    creates the model indicated by the individual. 
+    """
+    model=tf.keras.Sequential()
+    non_empty_layer=0
+    for (index,gene) in enumerate(individual):
+        layer_details=pool_of_features[gene]      
+                    
+        if layer_details['layer'] is not None:
+            
+            if non_empty_layer==0:
+                layer_details['params']['input_shape']=(100,100,3)
+                layer=layer_details['layer'](**layer_details['params'])
+            else:
+                layer=layer_details['layer'](**layer_details['params'])
+                model=check_flatten_need(model,layer,debug=debug)
+                layer=layer_details['layer'](**layer_details['params'])
+                layer=check_dimension_compatibility(model,layer,debug=debug)
+            
+            model.add(layer)
+            non_empty_layer+=1   
+
+            
+    layer=tf.keras.layers.Dense(2,activation='softmax')
+    model=check_flatten_need(model,layer)
+    model.add(layer)
+    if debug:
+            print('model stack:',*model.layers,sep='\n')
+
+    learning_rate=tf.optimizers.schedules.ExponentialDecay(initial_learning_rate=.1,decay_steps=10000.,decay_rate=0.95)
+    opt=tf.optimizers.SGD(learning_rate=learning_rate)
+    model.compile(optimizer=opt, loss=tf.metrics.mse,metrics=tf.metrics.AUC(name='auc'))
+    
+    return model
+
+def train_model(trainning_dataset,validation_dataset,model:tf.keras.Sequential,individual,seed=None,verbose=0,max_epochs=20,display=False)-> tf.keras.Sequential:
+
+    if str(seed)+str(individual) not in space_checked.keys():
+        log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+        callback = tf.keras.callbacks.EarlyStopping(monitor='val_auc', patience=3)
+        model.fit(trainning_dataset,validation_data=validation_dataset,epochs=max_epochs,verbose=verbose,callbacks=[callback,tensorboard_callback])   
+        space_checked[str(seed)+str(individual)]=model
+    else:
+        model=space_checked[str(seed)+str(individual) ]
+
+    return model
+
+def evaluate_model(testing_dataset,model:tf.keras.Sequential,verbose=0)->float:
+    _,metric=model.evaluate(testing_dataset,verbose=verbose)
+    return metric
+
+def choice(a,p):
+    return np.random.choice(a=a,size=1,p=p)[0]
+
+def initIndividual(icls, content):
+    return icls(content)
+
+def initPopulation(pcls, ind_init,pop_size,trial_name, filename):
+    with open(filename, "r") as pop_file:
+        contents = np.array(json.load(pop_file))
+    # contents=np.array(contents)
+    index_ind_selected=np.random.choice(np.arange(0,len(contents)),size=pop_size,replace=False)
+    pop=contents[index_ind_selected,:]
+
+    with open(trial_name+'_population_selected.json','w') as f:
+        json.dump(pop.tolist(),f)
+
+    return pcls(ind_init(c) for c in pop)
 
 
+def main(id):
 
-    def evaluate(individual,num_of_evaluations=1,verbose=0):
+
+    def evaluate(individual,trainning_dataset,validation_dataset,testing_dataset,pool_of_features,fn_no_linear=None,max_epochs=20,num_of_evaluations=1,verbose=0,display=False):
+        if display:
+            print('model {} is being trainned')
+
         seeds=[1234,345,121,132,234]
         metrics=[]
         for seed in seeds[:num_of_evaluations]:
-            model=create_model(individual)
-            model=train_model(model,individual,verbose=verbose)
-            metrics.append(evaluate_model(model,verbose=verbose))
+            np.random.seed(seed)
+            random.seed(seed)
+            tf.random.set_seed(seed)
+            model=create_model(pool_of_features,individual)
+            if seed==seeds[0]:
+                print('\n'*2)
+                print(f'individual: {individual}')
+                print(model.summary())
+                print('\n'*2)
+
+            model=train_model(trainning_dataset,
+                            validation_dataset,
+                            model,
+                            individual,
+                            seed=seed,
+                            max_epochs=max_epochs,
+                            verbose=verbose)
+            metrics.append(evaluate_model(testing_dataset,model,verbose=verbose))
         metrics=np.mean(metrics)
+        if fn_no_linear!=None:
+            metrics=fn_no_linear(metrics)
+
         
         return metrics,
+
+
+
+    max_depth=5
+    global pool_of_features
+    global pool_of_features_probability
+    trainning_dataset,validation_dataset,testing_dataset=load_datasets()
+    pool_of_features,pool_of_features_probability=individuals(max_depth=max_depth)
+
+
+    if not os.path.isfile(f'arquiteturas_validas_max_depth_{max_depth}.json'): 
+        print('Pool of valid archtectures about to be created')
+        generate_individuals(pool_of_features,pool_of_features_probability,max_depth=max_depth)
+        
+    global space_checked
+    space_checked={}
+
+
 
     if testing:
         individual=[12,#conv
@@ -352,30 +409,9 @@ def main():
         evaluate_model(model)
 
 
-    def choice(a,p):
-       return np.random.choice(a=a,size=1,p=p)[0]
 
-
-    def initIndividual(icls, content):
-        return icls(content)
-
-    def initPopulation(pcls, ind_init,pop_size,trial_name, filename):
-        with open(filename, "r") as pop_file:
-            contents = np.array(json.load(pop_file))
-        # contents=np.array(contents)
-        index_ind_selected=np.random.choice(np.arange(0,len(contents)),size=pop_size,replace=False)
-        pop=contents[index_ind_selected,:]
-
-        with open(trial_name+'_population_selected.json','w') as f:
-            json.dump(pop.tolist(),f)
-
-
-        return pcls(ind_init(c) for c in pop)
 
     history = tools.History()
-
-
-
     creator.create("FitnessMax", base.Fitness, weights=(1.0,))
     creator.create("Individual", list, fitness=creator.FitnessMax)
     toolbox = base.Toolbox()
@@ -383,21 +419,29 @@ def main():
     # toolbox.register("individual", tools.initRepeat, creator.Individual,toolbox.attribute, n=15)
     # toolbox.register("population", tools.initRepeat, list, toolbox.individual)
     toolbox.register("individual_guess", initIndividual, creator.Individual)
-    toolbox.register("population_guess", initPopulation, list, toolbox.individual_guess, filename="arquiteturas_validas.json",trial_name='001')
+    toolbox.register("population_guess", initPopulation, list, toolbox.individual_guess, filename=f"arquiteturas_validas_max_depth_{max_depth}.json",trial_name=id)
 
     toolbox.register("mate", tools.cxOnePoint)
     toolbox.register("mutate", tools.mutUniformInt,low=0,up=len(pool_of_features), indpb=0.1)
     toolbox.register("select", tools.selTournament, tournsize=3)
-    toolbox.register("evaluate", evaluate,num_of_evaluations=1,verbose=1)
+    toolbox.register("evaluate", evaluate,trainning_dataset=trainning_dataset.batch(10),
+                                        validation_dataset=validation_dataset.batch(10),
+                                        testing_dataset=testing_dataset.batch(32),
+                                        pool_of_features=pool_of_features,
+                                        max_epochs=20,
+                                        num_of_evaluations=1,
+                                        fn_no_linear=lambda x: x**3,
+                                        verbose=0)
 
     # Decorate the variation operators
     toolbox.decorate("mate", history.decorator)
     toolbox.decorate("mutate", history.decorator)
 
 
-    population_size=5
-    # pop=toolbox.population(n=population_size)
+    population_size=2
+    generations=10
     population = toolbox.population_guess(pop_size=population_size)
+    history.update(population)
 
 
     hof = tools.HallOfFame(1)  # salva o melhor individuo que já existiu na pop durante a evolução
@@ -410,19 +454,37 @@ def main():
     stats.register('max', np.max)
 
 
-    generations=30
+  
     pop, log = algorithms.eaSimple(population, toolbox, cxpb=0.5, mutpb=0.01, ngen=generations, stats=stats, halloffame=hof, verbose=True)
 
     print('melhor:',hof[0])
-    print(create_model(hof[0]).summary())
-    print(evaluate(hof[0]))
+    print(create_model(pool_of_features,hof[0],).summary())
+    print(evaluate(hof[0],trainning_dataset=trainning_dataset.batch(10),
+                                        validation_dataset=validation_dataset.batch(10),
+                                        testing_dataset=testing_dataset.batch(32),
+                                        pool_of_features=pool_of_features,
+                                        num_of_evaluations=5,
+                                        ))
+    
+    with open(f'id_{id}_individuals_generation.txt','w') as f:
+        for gen in history.genealogy_history.values():
+            f.write(str(gen)+'\n')
+        
 
-
-    with open(f'experiment_gen_{generations}_pop_{population_size}_{datetime.datetime.now()}.json','w+') as f:
-        json.dump(log,f)
 
 
 if __name__=="__main__":
+    # os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
     print('starting')
     testing=False
-    main()
+    id_user='teste_000_'
+    id=id_user+str(datetime.datetime.now())
+    sys.stdout = open(f'id_{id}_full_log.txt', '+w')
+    description="""
+                experimento de GA
+                10 gerações, 1 individuos
+                metrica objetivo: AUC                   
+                    
+                """
+    print(description)
+    main(id)
