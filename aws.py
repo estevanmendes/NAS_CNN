@@ -2,6 +2,7 @@ import logging
 import boto3
 from botocore.exceptions import ClientError
 import os
+import argparse
 
 
 def upload_file(s3_client,file_name, bucket, object_name=None):
@@ -39,3 +40,27 @@ def generate_s3_client():
         aws_secret_access_key=SECRET_KEY,
     )
     return client
+
+if __name__=="__main__":
+
+ 
+    parser = argparse.ArgumentParser(description="",formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("-up", "--upload_file", help="path to file to be uploaded")
+    parser.add_argument("-dw", "--download_file",  help="file to be downloaded")
+    parser.add_argument("-bk", "--bucket", help="aws bucket")
+    args = parser.parse_args()
+    config = vars(args)
+
+    client=generate_s3_client()
+    bucket=config['bucket']
+
+    if config['download_file']:
+        pass
+    
+    if config['upload_file']:
+        file2upload=config['upload_file']
+        upload_file(client,file2upload,bucket)
+        
+
+  
+    print(config)
