@@ -3,3 +3,4 @@ pandas
 numpy
 deap
 boto3
+networkx
