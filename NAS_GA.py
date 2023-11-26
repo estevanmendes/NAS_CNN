@@ -11,6 +11,7 @@ import time
 import aws
 import networkx
 import matplotlib.pyplot as plt
+from simple_ga_algorithms_checkpoint import *
 
 np.random.seed(1234)
 
@@ -325,14 +326,10 @@ def create_model(pool_of_features,individual,debug=False):
 @output_prints_decorator_factory(*default_filenames)
 def train_model(trainning_dataset,validation_dataset,model:tf.keras.Sequential,individual,seed=None,verbose=0,max_epochs=20,display=False)-> tf.keras.Sequential:
 
-    if str(seed)+str(individual) not in space_checked.keys():
-        log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
-        callback = tf.keras.callbacks.EarlyStopping(monitor='val_auc', patience=3)
-        model.fit(trainning_dataset,validation_data=validation_dataset,epochs=max_epochs,verbose=verbose,callbacks=[callback,tensorboard_callback])   
-        space_checked[str(seed)+str(individual)]=model
-    else:
-        model=space_checked[str(seed)+str(individual) ]
+    log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+    callback = tf.keras.callbacks.EarlyStopping(monitor='val_auc', patience=3)
+    model.fit(trainning_dataset,validation_data=validation_dataset,epochs=max_epochs,verbose=verbose,callbacks=[callback,tensorboard_callback])   
 
     return model
 
@@ -447,8 +444,6 @@ def main(id,max_depth,generations,population_size,num_of_evaluations=1,max_epoch
         print('Pool of valid archtectures about to be created')
         generate_individuals(pool_of_features,pool_of_features_probability,max_depth=max_depth)
         
-    global space_checked
-    space_checked={}
 
 
 
@@ -510,7 +505,11 @@ def main(id,max_depth,generations,population_size,num_of_evaluations=1,max_epoch
 
 
   
-    pop, log = algorithms.eaSimple(population, toolbox, cxpb=0.5, mutpb=0.01, ngen=generations, stats=stats, halloffame=hof, verbose=True)
+    # pop, log = algorithms.eaSimple(population, toolbox, cxpb=0.5, mutpb=0.01, ngen=generations, stats=stats, halloffame=hof, verbose=True)
+    pop, log = simple_algorithm_checkpoint(population, toolbox, cxpb=0.5, mutpb=0.01, ngen=generations, stats=stats, halloffame=hof, verbose=True,freq=1)
+    for gen in range(1,generations):
+        pop, log = simple_algorithm_checkpoint(population, toolbox, cxpb=0.5, mutpb=0.01, ngen=generations, stats=stats, halloffame=hof, verbose=True,freq=1,checkpoint=f'start_gen_1_to_gen_{gen}_checkpoint_name.pkl')
+
 
     print('melhor:',hof[0])
     print(create_model(pool_of_features,hof[0],).summary())
