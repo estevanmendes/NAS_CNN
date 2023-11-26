@@ -400,9 +400,10 @@ def main(id,max_depth,generations,population_size,num_of_evaluations=1,max_epoch
             np.random.seed(seed)
             random.seed(seed)
             tf.random.set_seed(seed)
+
             
-            model=create_model(pool_of_features,individual)
             if seed==seeds[0]:
+                model_raw=create_model(pool_of_features,individual)
                 print('\n'*2)
                 print(f'individual: {individual}')
                 print(model.summary())
@@ -410,7 +411,7 @@ def main(id,max_depth,generations,population_size,num_of_evaluations=1,max_epoch
 
             model=train_model(trainning_dataset,
                             validation_dataset,
-                            model,
+                            model_raw,
                             individual,
                             seed=seed,
                             max_epochs=max_epochs,
