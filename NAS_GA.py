@@ -7,6 +7,8 @@ from deap import base, creator,tools,algorithms
 import json
 import sys
 import random
+import time
+import aws
 
 np.random.seed(1234)
 
@@ -339,6 +341,19 @@ def initPopulation(pcls, ind_init,pop_size,trial_name, filename):
 
     return pcls(ind_init(c) for c in pop)
 
+def send_results_2_aws(files):
+    client=aws.generate_s3_client()  
+    bucket='deeplearning-puc'
+    for file in files:
+        aws.upload_file(client,bucket=bucket)
+
+
+def check_aws_keys():
+    try:
+        os.getenv('ACCESS_KEY')
+        os.getenv('SECRET_KEY')
+    except:
+        print('Keys to upload results were not provided')
 
 def main(id):
 
@@ -376,7 +391,7 @@ def main(id):
         return metrics,
 
 
-
+    check_aws_keys()
     max_depth=5
     global pool_of_features
     global pool_of_features_probability
@@ -471,7 +486,8 @@ def main(id):
             f.write(str(gen)+'\n')
         
 
-
+    files=['id_{id}_individuals_generation.txt',"arquiteturas_validas_max_depth_{max_depth}.json",'id_{id}_full_log.txt']
+    send_results_2_aws(files)
 
 if __name__=="__main__":
     # os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
@@ -487,4 +503,8 @@ if __name__=="__main__":
                     
                 """
     print(description)
+    t1=time.time()
     main(id)
+    t2=time.time()
+    dt=t2-t1
+    print(f'time to run the code : {dt}')
