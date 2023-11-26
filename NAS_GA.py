@@ -9,10 +9,27 @@ import sys
 import random
 import time
 import aws
+import networkx
+import matplotlib.pyplot as plt
 
 np.random.seed(1234)
 
 from typing import Any
+
+default_filenames=['detalhes_arquiteturas_testadadas.txt','experimento_log.txt']
+
+def output_prints_decorator_factory(filename_in,filename_out=None):
+    def out_prints_decorator(f):
+        def wrapper(*args,**kwargs):
+            sys.stdout = open(filename_in, '+a')
+            results=f(*args,**kwargs)
+            if filename_out:
+                sys.stdout = open(filename_out, '+a')
+            
+            return results
+        return wrapper
+    
+    return out_prints_decorator
 
 def load_datasets():
     class Dataframe2ImageDataset:
@@ -188,7 +205,6 @@ def architecture_feaseable(pool_of_features,individual,debug=False):
     else:
         return individual
 
-
 def generate_individuals(pool_of_features,pool_of_features_probability,max_depth):
         pool_individuals=np.random.choice(list(pool_of_features.keys()),size=(1000,max_depth),p=pool_of_features_probability)
         pool_individuals_valids=[]
@@ -306,6 +322,7 @@ def create_model(pool_of_features,individual,debug=False):
     
     return model
 
+@output_prints_decorator_factory(*default_filenames)
 def train_model(trainning_dataset,validation_dataset,model:tf.keras.Sequential,individual,seed=None,verbose=0,max_epochs=20,display=False)-> tf.keras.Sequential:
 
     if str(seed)+str(individual) not in space_checked.keys():
@@ -345,19 +362,34 @@ def send_results_2_aws(files):
     client=aws.generate_s3_client()  
     bucket='deeplearning-puc'
     for file in files:
-        aws.upload_file(client,bucket=bucket)
-
+        aws.upload_file(client,file,bucket=bucket)
 
 def check_aws_keys():
-    try:
-        os.getenv('ACCESS_KEY')
-        os.getenv('SECRET_KEY')
-    except:
+    
+    env1=os.getenv('ACCESS_KEY')
+    env2=os.getenv('SECRET_KEY')
+    if not (env1 and env2):
+        print('\n')
+        print('#'*20)
         print('Keys to upload results were not provided')
+        print('#'*20)
+        print('\n')
 
-def main(id):
+def paralelized_trianning():
+    pass
+
+def save_logs(id):
+    new_filenames=[id+'_'+filename for file in default_filenames]
+    for filename,new_filename in zip(default_filenames,new_filenames):
+        os.rename(filename,new_filename)
+    
+    return new_filenames
+    
 
 
+def main(id,max_depth,generations,population_size,num_of_evaluations=1,max_epochs=20,verbose=0):
+
+    @output_prints_decorator_factory(*default_filenames)
     def evaluate(individual,trainning_dataset,validation_dataset,testing_dataset,pool_of_features,fn_no_linear=None,max_epochs=20,num_of_evaluations=1,verbose=0,display=False):
         if display:
             print('model {} is being trainned')
@@ -368,6 +400,7 @@ def main(id):
             np.random.seed(seed)
             random.seed(seed)
             tf.random.set_seed(seed)
+            
             model=create_model(pool_of_features,individual)
             if seed==seeds[0]:
                 print('\n'*2)
@@ -383,16 +416,26 @@ def main(id):
                             max_epochs=max_epochs,
                             verbose=verbose)
             metrics.append(evaluate_model(testing_dataset,model,verbose=verbose))
-        metrics=np.mean(metrics)
-        if fn_no_linear!=None:
-            metrics=fn_no_linear(metrics)
 
+        if num_of_evaluations>1:
+            metrics_mean=np.mean(metrics)
+            metrics_std=np.std(metrics)
+            print('\n')
+            print(f'metrics mean:{metrics_mean:.5f}, std:{metrics_std:.5f}, samples:{len(metrics)}')
+            print('\n')
+        else:
+            metrics_mean=metrics[-1]
+
+        if fn_no_linear!=None:
+            metrics_mean=fn_no_linear(metrics_mean)
         
-        return metrics,
+        return metrics_mean,
 
 
     check_aws_keys()
-    max_depth=5
+    # max_depth=5
+    # population_size=2
+    # generations=10
     global pool_of_features
     global pool_of_features_probability
     trainning_dataset,validation_dataset,testing_dataset=load_datasets()
@@ -430,9 +473,6 @@ def main(id):
     creator.create("FitnessMax", base.Fitness, weights=(1.0,))
     creator.create("Individual", list, fitness=creator.FitnessMax)
     toolbox = base.Toolbox()
-    # toolbox.register("attribute", choice,a=list(pool_of_features.keys()),p=pool_of_features_probability)
-    # toolbox.register("individual", tools.initRepeat, creator.Individual,toolbox.attribute, n=15)
-    # toolbox.register("population", tools.initRepeat, list, toolbox.individual)
     toolbox.register("individual_guess", initIndividual, creator.Individual)
     toolbox.register("population_guess", initPopulation, list, toolbox.individual_guess, filename=f"arquiteturas_validas_max_depth_{max_depth}.json",trial_name=id)
 
@@ -443,18 +483,17 @@ def main(id):
                                         validation_dataset=validation_dataset.batch(10),
                                         testing_dataset=testing_dataset.batch(32),
                                         pool_of_features=pool_of_features,
-                                        max_epochs=20,
-                                        num_of_evaluations=1,
+                                        max_epochs=max_epochs,
+                                        num_of_evaluations=num_of_evaluations,
                                         fn_no_linear=lambda x: x**3,
-                                        verbose=0)
+                                        verbose=verbose)
 
     # Decorate the variation operators
     toolbox.decorate("mate", history.decorator)
     toolbox.decorate("mutate", history.decorator)
 
 
-    population_size=2
-    generations=10
+  
     population = toolbox.population_guess(pop_size=population_size)
     history.update(population)
 
@@ -485,17 +524,32 @@ def main(id):
         for gen in history.genealogy_history.values():
             f.write(str(gen)+'\n')
         
+    graph = networkx.DiGraph(history.genealogy_tree)
+    graph = graph.reverse()     # Make the graph top-down
+    colors = [toolbox.evaluate(history.genealogy_history[i])[0] for i in graph]
+    networkx.draw(graph, node_color=colors)
+    plt.savefig('id_{id}_genealogy_tree.png')
 
-    files=['id_{id}_individuals_generation.txt',"arquiteturas_validas_max_depth_{max_depth}.json",'id_{id}_full_log.txt']
+    files=['id_{id}_individuals_generation.txt',"arquiteturas_validas_max_depth_{max_depth}.json"]
+    filename_logs=save_logs()
+    files.extend(filename_logs)
     send_results_2_aws(files)
 
+
+
 if __name__=="__main__":
-    # os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
-    print('starting')
+    os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
     testing=False
-    id_user='teste_000_'
+    id_user='teste_002_'
+    global id
     id=id_user+str(datetime.datetime.now())
-    sys.stdout = open(f'id_{id}_full_log.txt', '+w')
+    max_depth=4
+    generations=1
+    population_size=4
+    num_of_evaluations=2
+    max_epochs=1
+
+    sys.stdout = open(default_filenames[-1], '+w')
     description="""
                 experimento de GA
                 10 gerações, 1 individuos
@@ -504,7 +558,7 @@ if __name__=="__main__":
                 """
     print(description)
     t1=time.time()
-    main(id)
+    main(id,max_depth=max_depth,generations=generations,population_size=population_size,num_of_evaluations=num_of_evaluations,max_epochs=max_epochs)
     t2=time.time()
     dt=t2-t1
     print(f'time to run the code : {dt}')
