@@ -390,14 +390,14 @@ def main(id,max_depth,generations,population_size,num_of_evaluations=1,max_epoch
     def evaluate(individual,trainning_dataset,validation_dataset,testing_dataset,pool_of_features,fn_no_linear=None,max_epochs=20,num_of_evaluations=1,verbose=0,display=False):
         if display:
             print('model {} is being trainned')
-
+    
         seeds=[1234,345,121,132,234]
         metrics=[]
         for seed in seeds[:num_of_evaluations]:
             np.random.seed(seed)
             random.seed(seed)
             tf.random.set_seed(seed)
-
+            
             
             if seed==seeds[0]:
                 model_raw=create_model(pool_of_features,individual)
@@ -419,6 +419,7 @@ def main(id,max_depth,generations,population_size,num_of_evaluations=1,max_epoch
             metrics_mean=np.mean(metrics)
             metrics_std=np.std(metrics)
             print('\n')
+            print(f'individual:{individual}')
             print(f'metrics mean:{metrics_mean:.5f}, std:{metrics_std:.5f}, samples:{len(metrics)}')
             print('\n')
         else:
