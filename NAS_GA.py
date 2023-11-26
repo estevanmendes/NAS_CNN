@@ -406,7 +406,7 @@ def main(id,max_depth,generations,population_size,num_of_evaluations=1,max_epoch
                 model_raw=create_model(pool_of_features,individual)
                 print('\n'*2)
                 print(f'individual: {individual}')
-                print(model.summary())
+                print(model_raw.summary())
                 print('\n'*2)
 
             model=train_model(trainning_dataset,
