@@ -530,7 +530,7 @@ def main(id,max_depth,generations,population_size,num_of_evaluations=1,max_epoch
     networkx.draw(graph, node_color=colors)
     plt.savefig(f'id_{id}_genealogy_tree.png')
 
-    files=[f'id_{id}_individuals_generation.txt',f"arquiteturas_validas_max_depth_{max_depth}.json"]
+    files=[f'id_{id}_individuals_generation.txt',f'arquiteturas_validas_max_depth_{max_depth}.json',f'id_{id}_genealogy_tree.png']
     filename_logs=save_logs(id)
     files.extend(filename_logs)
     send_results_2_aws(files)
