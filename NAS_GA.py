@@ -17,7 +17,7 @@ np.random.seed(1234)
 
 from typing import Any
 
-default_filenames=['detalhes_arquiteturas_testadadas.txt','experimento_log.txt']
+default_filenames=['detalhes_arquiteturas_testadas.txt','experimento_log.txt']
 
 def output_prints_decorator_factory(filename_in,filename_out=None):
     def out_prints_decorator(f):
