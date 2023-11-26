@@ -538,14 +538,14 @@ def main(id,max_depth,generations,population_size,num_of_evaluations=1,max_epoch
 
 
 if __name__=="__main__":
-    os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+    os.environ['CUDA_VISIBLE_DEVICES'] = '2'
     testing=False
     id_user='debug_teste_002_'
     global id
     id=id_user+str(datetime.datetime.now())
     max_depth=5
     generations=3
-    population_size=4
+    population_size=2
     num_of_evaluations=2
     max_epochs=4
 
@@ -553,7 +553,7 @@ if __name__=="__main__":
     description="""
                 debug
                 experimento de GA
-                10 gerações, 1 individuos
+                3 gerações, 2 individuos,2 avaliacoes,5 profundidade maxima,4 maximo epocas
                 metrica objetivo: AUC                   
                     
                 """
