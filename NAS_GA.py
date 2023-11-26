@@ -528,7 +528,7 @@ def main(id,max_depth,generations,population_size,num_of_evaluations=1,max_epoch
     graph = graph.reverse()     # Make the graph top-down
     colors = [toolbox.evaluate(history.genealogy_history[i])[0] for i in graph]
     networkx.draw(graph, node_color=colors)
-    plt.savefig('id_{id}_genealogy_tree.png')
+    plt.savefig(f'id_{id}_genealogy_tree.png')
 
     files=[f'id_{id}_individuals_generation.txt',f"arquiteturas_validas_max_depth_{max_depth}.json"]
     filename_logs=save_logs(id)
