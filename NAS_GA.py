@@ -531,7 +531,7 @@ def main(id,max_depth,generations,population_size,num_of_evaluations=1,max_epoch
     plt.savefig('id_{id}_genealogy_tree.png')
 
     files=['id_{id}_individuals_generation.txt',"arquiteturas_validas_max_depth_{max_depth}.json"]
-    filename_logs=save_logs()
+    filename_logs=save_logs(id)
     files.extend(filename_logs)
     send_results_2_aws(files)
 

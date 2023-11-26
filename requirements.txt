@@ -4,3 +4,4 @@ numpy
 deap
 boto3
 networkx
+matplotlib
