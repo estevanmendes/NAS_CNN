@@ -507,9 +507,26 @@ def main(id,max_depth,generations,population_size,num_of_evaluations=1,max_epoch
 
   
     # pop, log = algorithms.eaSimple(population, toolbox, cxpb=0.5, mutpb=0.01, ngen=generations, stats=stats, halloffame=hof, verbose=True)
-    pop, log = simple_algorithm_checkpoint(population, toolbox, cxpb=0.5, mutpb=0.01, ngen=generations, stats=stats, halloffame=hof, verbose=True,freq=1)
+    pop, log = simple_algorithm_checkpoint(population=population,
+                                            toolbox=toolbox,
+                                            cxpb=0.5,
+                                            mutpb=0.01,
+                                            ngen=generations,
+                                            stats=stats,
+                                            halloffame=hof,
+                                            verbose=True,
+                                            freq=1)
     for gen in range(1,generations):
-        pop, log = simple_algorithm_checkpoint(population, toolbox, cxpb=0.5, mutpb=0.01, ngen=generations, stats=stats, halloffame=hof, verbose=True,freq=1,checkpoint=f'start_gen_1_to_gen_{gen}_checkpoint_name.pkl')
+        pop, log = simple_algorithm_checkpoint(population=population,
+                                                toolbox=toolbox,
+                                                cxpb=0.5,
+                                                mutpb=0.01,
+                                                ngen=generations,
+                                                stats=stats,
+                                                halloffame=hof,
+                                                verbose=True,
+                                                freq=1,
+                                                checkpoint=f'start_gen_1_to_gen_{gen}_checkpoint_name.pkl')
 
 
     print('melhor:',hof[0])
