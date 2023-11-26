@@ -379,7 +379,7 @@ def paralelized_trianning():
     pass
 
 def save_logs(id):
-    new_filenames=[id+'_'+filename for file in default_filenames]
+    new_filenames=[id+'_'+filename for filename in default_filenames]
     for filename,new_filename in zip(default_filenames,new_filenames):
         os.rename(filename,new_filename)
     
@@ -540,17 +540,18 @@ def main(id,max_depth,generations,population_size,num_of_evaluations=1,max_epoch
 if __name__=="__main__":
     os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
     testing=False
-    id_user='teste_002_'
+    id_user='debug_teste_002_'
     global id
     id=id_user+str(datetime.datetime.now())
-    max_depth=4
-    generations=1
+    max_depth=5
+    generations=3
     population_size=4
     num_of_evaluations=2
-    max_epochs=1
+    max_epochs=4
 
     sys.stdout = open(default_filenames[-1], '+w')
     description="""
+                debug
                 experimento de GA
                 10 gerações, 1 individuos
                 metrica objetivo: AUC                   
