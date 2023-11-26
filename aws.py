@@ -27,7 +27,12 @@ def upload_file(s3_client,file_name, bucket, object_name=None):
         return False
     return True
 
-import boto3
+def download_file(s3_client,filename, bucket, objectname=None):
+    # with open(filename, 'wb') as f:
+    #     s3_client.download_fileobj(bucket, objectname, f)
+    s3_client.download_file(bucket, objectname, filename)
+
+    print('Done!')
 
 ACCESS_KEY=os.getenv('ACCESS_KEY')
 SECRET_KEY=os.getenv('SECRET_KEY')
@@ -41,8 +46,20 @@ def generate_s3_client():
     )
     return client
 
+def check_aws_keys():
+    
+    env1=os.getenv('ACCESS_KEY')
+    env2=os.getenv('SECRET_KEY')
+    if not (env1 and env2):
+        print('\n')
+        print('#'*20)
+        print('Keys to upload results were not provided')
+        print('#'*20)
+        print('\n')
+
 if __name__=="__main__":
 
+    check_aws_keys()
  
     parser = argparse.ArgumentParser(description="",formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-up", "--upload_file", help="path to file to be uploaded")
@@ -50,12 +67,14 @@ if __name__=="__main__":
     parser.add_argument("-bk", "--bucket", help="aws bucket")
     args = parser.parse_args()
     config = vars(args)
-
+    print(config)
+    
     client=generate_s3_client()
     bucket=config['bucket']
 
     if config['download_file']:
-        pass
+        file2download=config['download_file']
+        download_file(client,file2download,bucket,file2download)
     
     if config['upload_file']:
         file2upload=config['upload_file']
@@ -63,4 +82,3 @@ if __name__=="__main__":
         
 
   
-    print(config)
