@@ -24,7 +24,7 @@ def _simple_algorithm_checkpoint(start_gen,logbook,toolbox,cxpb,mutpb,freq,ngen,
                 cp = dict(population=population, generation=gen, halloffame=halloffame,
                         logbook=logbook, rndstate=random.getstate())
 
-                with open(f"start_gen_{start_gen+1}_to_gen_{gen+1}_checkpoint_name.pkl", "wb") as cp_file:
+                with open(f"start_gen_1_to_gen_{gen+1}_checkpoint_name.pkl", "wb") as cp_file:
                     pickle.dump(cp, cp_file)
         
     

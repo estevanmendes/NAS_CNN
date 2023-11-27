@@ -527,7 +527,7 @@ def main(id,max_depth,generations,population_size,start_gen,num_of_evaluations=1
                                                 checkpoint=checkpoint)
 
 
-    if gen==generations:
+    if gen+1==generations:
         print('melhor:',hof[0])
         print(create_model(pool_of_features,hof[0],).summary())
         print(evaluate(hof[0],trainning_dataset=trainning_dataset.batch(10),
@@ -558,6 +558,7 @@ if __name__=="__main__":
 
     parser = argparse.ArgumentParser(description="",formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-sg", "--start_gen", help="")
+    parser.add_argument("-eg", "--end_gen", help="")
     parser.add_argument("-g", "--gpu",  help="")
     args = parser.parse_args()
     config = vars(args)
@@ -571,13 +572,17 @@ if __name__=="__main__":
         start_gen=int(config['start_gen'])
     else:
         start_gen=0
+    if config['end_gen']:
+        end_gen=int(config['end_gen'])
+    else:
+        end_gen=30
 
     testing=False
     id_user='teste_002_'
     global id
     id=id_user#+str(datetime.datetime.now())
     max_depth=15
-    generations=30
+    generations=end_gen
     population_size=50
     num_of_evaluations=3
     max_epochs=20
