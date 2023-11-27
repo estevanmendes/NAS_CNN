@@ -583,8 +583,8 @@ if __name__=="__main__":
     max_epochs=20
 
     sys.stdout = open(default_filenames[-1], '+w')
-    description="""
-                
+    description=f"""
+                {start_gen} geração
                 experimento de GA
                 30 gerações, 50 individuos,3 avaliacoes,15 profundidade maxima,20 maximo epocas
                 metrica objetivo: AUC                   
