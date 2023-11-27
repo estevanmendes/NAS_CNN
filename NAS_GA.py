@@ -567,8 +567,8 @@ if __name__=="__main__":
         os.environ['CUDA_VISIBLE_DEVICES'] = str(config['gpu'])
     else:
         os.environ['CUDA_VISIBLE_DEVICES'] = '2'
-    if config['star_gen']:
-        start_gen=int(config['star_gen'])
+    if config['start_gen']:
+        start_gen=int(config['start_gen'])
     else:
         start_gen=0
 
