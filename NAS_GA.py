@@ -12,6 +12,7 @@ import aws
 import networkx
 import matplotlib.pyplot as plt
 from simple_ga_algorithms_checkpoint import *
+import argparse
 
 np.random.seed(1234)
 
@@ -384,7 +385,7 @@ def save_logs(id):
     
 
 
-def main(id,max_depth,generations,population_size,num_of_evaluations=1,max_epochs=20,verbose=0):
+def main(id,max_depth,generations,population_size,start_gen,num_of_evaluations=1,max_epochs=20,verbose=0):
 
     @output_prints_decorator_factory(*default_filenames)
     def evaluate(individual,trainning_dataset,validation_dataset,testing_dataset,pool_of_features,fn_no_linear=None,max_epochs=20,num_of_evaluations=1,verbose=0,display=False):
@@ -507,16 +508,13 @@ def main(id,max_depth,generations,population_size,num_of_evaluations=1,max_epoch
 
   
     # pop, log = algorithms.eaSimple(population, toolbox, cxpb=0.5, mutpb=0.01, ngen=generations, stats=stats, halloffame=hof, verbose=True)
-    pop, log = simple_algorithm_checkpoint(population=population,
-                                            toolbox=toolbox,
-                                            cxpb=0.5,
-                                            mutpb=0.01,
-                                            ngen=generations,
-                                            stats=stats,
-                                            halloffame=hof,
-                                            verbose=True,
-                                            freq=1)
-    for gen in range(1,generations):
+
+    for gen in range(start_gen,generations):
+        if gen!=0:
+            checkpoint=f'start_gen_1_to_gen_{gen}_checkpoint_name.pkl'
+        else:
+            checkpoint=None
+
         pop, log = simple_algorithm_checkpoint(population=population,
                                                 toolbox=toolbox,
                                                 cxpb=0.5,
@@ -526,41 +524,58 @@ def main(id,max_depth,generations,population_size,num_of_evaluations=1,max_epoch
                                                 halloffame=hof,
                                                 verbose=True,
                                                 freq=1,
-                                                checkpoint=f'start_gen_1_to_gen_{gen}_checkpoint_name.pkl')
+                                                checkpoint=checkpoint)
 
 
-    print('melhor:',hof[0])
-    print(create_model(pool_of_features,hof[0],).summary())
-    print(evaluate(hof[0],trainning_dataset=trainning_dataset.batch(10),
-                                        validation_dataset=validation_dataset.batch(10),
-                                        testing_dataset=testing_dataset.batch(32),
-                                        pool_of_features=pool_of_features,
-                                        num_of_evaluations=5,
-                                        ))
-    
-    with open(f'id_{id}_individuals_generation.txt','w') as f:
-        for gen in history.genealogy_history.values():
-            f.write(str(gen)+'\n')
+    if gen==generations:
+        print('melhor:',hof[0])
+        print(create_model(pool_of_features,hof[0],).summary())
+        print(evaluate(hof[0],trainning_dataset=trainning_dataset.batch(10),
+                                            validation_dataset=validation_dataset.batch(10),
+                                            testing_dataset=testing_dataset.batch(32),
+                                            pool_of_features=pool_of_features,
+                                            num_of_evaluations=5,
+                                            ))
         
-    graph = networkx.DiGraph(history.genealogy_tree)
-    graph = graph.reverse()     # Make the graph top-down
-    colors = [toolbox.evaluate(history.genealogy_history[i])[0] for i in graph]
-    networkx.draw(graph, node_color=colors)
-    plt.savefig(f'id_{id}_genealogy_tree.png')
+        # with open(f'id_{id}_individuals_generation.txt','+a') as f:
+            # for gen in history.genealogy_history.values():
+                # f.write(str(gen)+'\n')
+            
+        # graph = networkx.DiGraph(history.genealogy_tree)
+        # graph = graph.reverse()     # Make the graph top-down
+        # colors = [toolbox.evaluate(history.genealogy_history[i])[0] for i in graph]
+        # networkx.draw(graph, node_color=colors)
+        # plt.savefig(f'id_{id}_genealogy_tree.png')
 
-    files=[f'id_{id}_individuals_generation.txt',f'arquiteturas_validas_max_depth_{max_depth}.json',f'id_{id}_genealogy_tree.png']
-    filename_logs=save_logs(id)
-    files.extend(filename_logs)
-    send_results_2_aws(files)
+        files=[f'id_{id}_individuals_generation.txt',f'arquiteturas_validas_max_depth_{max_depth}.json',f'id_{id}_genealogy_tree.png']
+        filename_logs=save_logs(id)
+        files.extend(filename_logs)
+        send_results_2_aws(files)
 
 
 
 if __name__=="__main__":
-    os.environ['CUDA_VISIBLE_DEVICES'] = '2'
+
+    parser = argparse.ArgumentParser(description="",formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("-sg", "--start_gen", help="")
+    parser.add_argument("-g", "--gpu",  help="")
+    args = parser.parse_args()
+    config = vars(args)
+    print(config)
+
+    if config['gpu']:
+        os.environ['CUDA_VISIBLE_DEVICES'] = str(config['gpu'])
+    else:
+        os.environ['CUDA_VISIBLE_DEVICES'] = '2'
+    if config['star_gen']:
+        start_gen=int(config['star_gen'])
+    else:
+        start_gen=0
+
     testing=False
     id_user='teste_002_'
     global id
-    id=id_user+str(datetime.datetime.now())
+    id=id_user#+str(datetime.datetime.now())
     max_depth=15
     generations=30
     population_size=50
@@ -577,7 +592,14 @@ if __name__=="__main__":
                 """
     print(description)
     t1=time.time()
-    main(id,max_depth=max_depth,generations=generations,population_size=population_size,num_of_evaluations=num_of_evaluations,max_epochs=max_epochs)
+    main(id,
+         max_depth=max_depth,
+         generations=generations,
+         population_size=population_size,
+         num_of_evaluations=num_of_evaluations,
+         max_epochs=max_epochs,
+         start_gen=start_gen
+         )
     t2=time.time()
     dt=t2-t1
     print(f'time to run the code : {dt}')
