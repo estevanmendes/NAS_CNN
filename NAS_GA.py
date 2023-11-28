@@ -507,7 +507,7 @@ def main(id,max_depth,generations,population_size,start_gen,num_of_evaluations=1
 
         for gen in range(start_gen,generations+1):
             if gen!=0:
-                checkpoint=f'start_gen_0_to_gen_{gen}_checkpoint_name.pkl'
+                checkpoint=f'start_gen_0_to_gen_{gen-1}_checkpoint_name.pkl'
             else:
                 checkpoint=None
 
@@ -524,7 +524,7 @@ def main(id,max_depth,generations,population_size,start_gen,num_of_evaluations=1
                                                     history=history)
     else:
         gen=start_gen
-        checkpoint=f'start_gen_0_to_gen_{gen}_checkpoint_name.pkl'
+        checkpoint=f'start_gen_0_to_gen_{gen-1}_checkpoint_name.pkl'
         with open(checkpoint, "rb") as cp_file:
             cp = pickle.load(cp_file)
         # population = cp["population"]
