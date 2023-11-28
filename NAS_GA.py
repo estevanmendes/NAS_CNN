@@ -542,8 +542,8 @@ def main(id,max_depth,generations,population_size,start_gen,num_of_evaluations=1
                                             ))
         
         # with open(f'id_{id}_individuals_generation.txt','+a') as f:
-            # for gen in history.genealogy_history.values():
-                # f.write(str(gen)+'\n')
+        #     for gen in history.genealogy_history.values():
+        #         f.write(str(gen)+'\n')
             
         # graph = networkx.DiGraph(history.genealogy_tree)
         # graph = graph.reverse()     # Make the graph top-down
@@ -551,7 +551,8 @@ def main(id,max_depth,generations,population_size,start_gen,num_of_evaluations=1
         # networkx.draw(graph, node_color=colors)
         # plt.savefig(f'id_{id}_genealogy_tree.png')
 
-        files=[f'id_{id}_individuals_generation.txt',f'arquiteturas_validas_max_depth_{max_depth}.json',f'id_{id}_genealogy_tree.png']
+        # files=[f'id_{id}_individuals_generation.txt',f'arquiteturas_validas_max_depth_{max_depth}.json']#,f'id_{id}_genealogy_tree.png']
+        files=[f'arquiteturas_validas_max_depth_{max_depth}.json']
         filename_logs=save_logs(id)
         files.extend(filename_logs)
         send_results_2_aws(files)
