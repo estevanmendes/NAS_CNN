@@ -507,7 +507,7 @@ def main(id,max_depth,generations,population_size,start_gen,num_of_evaluations=1
 
         for gen in range(start_gen,generations+1):
             if gen!=0:
-                checkpoint=f'start_gen_1_to_gen_{gen}_checkpoint_name.pkl'
+                checkpoint=f'start_gen_0_to_gen_{gen}_checkpoint_name.pkl'
             else:
                 checkpoint=None
 
