@@ -526,8 +526,8 @@ def main(id,max_depth,generations,population_size,start_gen,num_of_evaluations=1
         checkpoint=f'start_gen_0_to_gen_{gen}_checkpoint_name.pkl'
         with open(checkpoint, "rb") as cp_file:
             cp = pickle.load(cp_file)
-        population = cp["population"]
-        generations = cp["generation"]
+        # population = cp["population"]
+        # generations = cp["generation"]
         hof = cp["halloffame"]
         log = cp["logbook"]
 
