@@ -580,9 +580,9 @@ if __name__=="__main__":
     else:
         start_gen=0
 
-    if config['end_gen'] or config['steps']:
+    if config['end_gen']:
         end_gen=int(config['end_gen'])
-        
+
     elif config['steps']:
         end_gen=start_gen+int(config['steps'])
     else:
