@@ -433,9 +433,6 @@ def main(id,max_depth,generations,population_size,start_gen,num_of_evaluations=1
 
 
     check_aws_keys()
-    # max_depth=5
-    # population_size=2
-    # generations=10
     global pool_of_features
     global pool_of_features_probability
     trainning_dataset,validation_dataset,testing_dataset=load_datasets()
@@ -465,69 +462,76 @@ def main(id,max_depth,generations,population_size,start_gen,num_of_evaluations=1
         evaluate_model(model)
 
 
+    if start_gen!=generations:
+
+        history = tools.History()
+        creator.create("FitnessMax", base.Fitness, weights=(1.0,))
+        creator.create("Individual", list, fitness=creator.FitnessMax)
+        toolbox = base.Toolbox()
+        toolbox.register("individual_guess", initIndividual, creator.Individual)
+        toolbox.register("population_guess", initPopulation, list, toolbox.individual_guess, filename=f"arquiteturas_validas_max_depth_{max_depth}.json",trial_name=id)
+
+        toolbox.register("mate", tools.cxOnePoint)
+        toolbox.register("mutate", tools.mutUniformInt,low=0,up=len(pool_of_features), indpb=0.1)
+        toolbox.register("select", tools.selTournament, tournsize=3)
+        toolbox.register("evaluate", evaluate,trainning_dataset=trainning_dataset.batch(10),
+                                            validation_dataset=validation_dataset.batch(10),
+                                            testing_dataset=testing_dataset.batch(32),
+                                            pool_of_features=pool_of_features,
+                                            max_epochs=max_epochs,
+                                            num_of_evaluations=num_of_evaluations,
+                                            fn_no_linear=lambda x: x**3,
+                                            verbose=verbose)
+
+        # Decorate the variation operators
+        toolbox.decorate("mate", history.decorator)
+        toolbox.decorate("mutate", history.decorator)
 
 
-    history = tools.History()
-    creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-    creator.create("Individual", list, fitness=creator.FitnessMax)
-    toolbox = base.Toolbox()
-    toolbox.register("individual_guess", initIndividual, creator.Individual)
-    toolbox.register("population_guess", initPopulation, list, toolbox.individual_guess, filename=f"arquiteturas_validas_max_depth_{max_depth}.json",trial_name=id)
+    
+        population = toolbox.population_guess(pop_size=population_size)
+        history.update(population)
 
-    toolbox.register("mate", tools.cxOnePoint)
-    toolbox.register("mutate", tools.mutUniformInt,low=0,up=len(pool_of_features), indpb=0.1)
-    toolbox.register("select", tools.selTournament, tournsize=3)
-    toolbox.register("evaluate", evaluate,trainning_dataset=trainning_dataset.batch(10),
-                                        validation_dataset=validation_dataset.batch(10),
-                                        testing_dataset=testing_dataset.batch(32),
-                                        pool_of_features=pool_of_features,
-                                        max_epochs=max_epochs,
-                                        num_of_evaluations=num_of_evaluations,
-                                        fn_no_linear=lambda x: x**3,
-                                        verbose=verbose)
 
-    # Decorate the variation operators
-    toolbox.decorate("mate", history.decorator)
-    toolbox.decorate("mutate", history.decorator)
+        hof = tools.HallOfFame(1)  # salva o melhor individuo que já existiu na pop durante a evolução
+
+        # Gerar as estatísticas
+        stats = tools.Statistics(lambda ind:ind.fitness.values)
+        stats.register('avg', np.mean)
+        stats.register('std', np.std)
+        stats.register('min', np.min)
+        stats.register('max', np.max)
 
 
   
-    population = toolbox.population_guess(pop_size=population_size)
-    history.update(population)
 
+        for gen in range(start_gen,generations+1):
+            if gen!=0:
+                checkpoint=f'start_gen_1_to_gen_{gen}_checkpoint_name.pkl'
+            else:
+                checkpoint=None
 
-    hof = tools.HallOfFame(1)  # salva o melhor individuo que já existiu na pop durante a evolução
+            pop, log,hof = simple_algorithm_checkpoint(population=population,
+                                                    toolbox=toolbox,
+                                                    cxpb=0.5,
+                                                    mutpb=0.01,
+                                                    ngen=generations,
+                                                    stats=stats,
+                                                    halloffame=hof,
+                                                    verbose=True,
+                                                    freq=1,
+                                                    checkpoint=checkpoint)
+    else:
+        gen=start_gen
+        checkpoint=f'start_gen_0_to_gen_{gen}_checkpoint_name.pkl'
+        with open(checkpoint, "rb") as cp_file:
+            cp = pickle.load(cp_file)
+        population = cp["population"]
+        generations = cp["generation"]
+        hof = cp["halloffame"]
+        log = cp["logbook"]
 
-    # Gerar as estatísticas
-    stats = tools.Statistics(lambda ind:ind.fitness.values)
-    stats.register('avg', np.mean)
-    stats.register('std', np.std)
-    stats.register('min', np.min)
-    stats.register('max', np.max)
-
-
-  
-    # pop, log = algorithms.eaSimple(population, toolbox, cxpb=0.5, mutpb=0.01, ngen=generations, stats=stats, halloffame=hof, verbose=True)
-
-    for gen in range(start_gen,generations):
-        if gen!=0:
-            checkpoint=f'start_gen_1_to_gen_{gen}_checkpoint_name.pkl'
-        else:
-            checkpoint=None
-
-        pop, log = simple_algorithm_checkpoint(population=population,
-                                                toolbox=toolbox,
-                                                cxpb=0.5,
-                                                mutpb=0.01,
-                                                ngen=generations,
-                                                stats=stats,
-                                                halloffame=hof,
-                                                verbose=True,
-                                                freq=1,
-                                                checkpoint=checkpoint)
-
-
-    if gen+1==generations:
+    if gen==generations:
         print('melhor:',hof[0])
         print(create_model(pool_of_features,hof[0],).summary())
         print(evaluate(hof[0],trainning_dataset=trainning_dataset.batch(10),
@@ -559,6 +563,8 @@ if __name__=="__main__":
     parser = argparse.ArgumentParser(description="",formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-sg", "--start_gen", help="")
     parser.add_argument("-eg", "--end_gen", help="")
+    parser.add_argument("-s", "--steps", help="")
+
     parser.add_argument("-g", "--gpu",  help="")
     args = parser.parse_args()
     config = vars(args)
@@ -568,12 +574,19 @@ if __name__=="__main__":
         os.environ['CUDA_VISIBLE_DEVICES'] = str(config['gpu'])
     else:
         os.environ['CUDA_VISIBLE_DEVICES'] = '2'
+   
     if config['start_gen']:
         start_gen=int(config['start_gen'])
     else:
         start_gen=0
+
     if config['end_gen']:
         end_gen=int(config['end_gen'])
+    else:
+        end_gen=30
+
+    if config['steps']:
+        end_gen=start_gen+int(config['steps'])
     else:
         end_gen=30
 
@@ -587,7 +600,7 @@ if __name__=="__main__":
     num_of_evaluations=3
     max_epochs=20
 
-    sys.stdout = open(default_filenames[-1], '+w')
+    sys.stdout = open(default_filenames[-1], '+a')
     description=f"""
                 {start_gen} geração
                 experimento de GA
