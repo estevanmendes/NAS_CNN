@@ -520,7 +520,8 @@ def main(id,max_depth,generations,population_size,start_gen,num_of_evaluations=1
                                                     halloffame=hof,
                                                     verbose=True,
                                                     freq=1,
-                                                    checkpoint=checkpoint)
+                                                    checkpoint=checkpoint,
+                                                    history=history)
     else:
         gen=start_gen
         checkpoint=f'start_gen_0_to_gen_{gen}_checkpoint_name.pkl'
