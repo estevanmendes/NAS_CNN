@@ -1,4 +1,4 @@
-for c in {0..29}
+for c in {1..29}
 do
 if [ $((c%2)) -eq 0 ];
 then
