@@ -511,7 +511,7 @@ def main(id,max_depth,generations,population_size,start_gen,num_of_evaluations=1
             else:
                 checkpoint=None
 
-            pop, log,hof = simple_algorithm_checkpoint(population=population,
+            pop, log,hof,genealogy_history = simple_algorithm_checkpoint(population=population,
                                                     toolbox=toolbox,
                                                     cxpb=0.5,
                                                     mutpb=0.01,
@@ -528,6 +528,7 @@ def main(id,max_depth,generations,population_size,start_gen,num_of_evaluations=1
             cp = pickle.load(cp_file)
         # population = cp["population"]
         # generations = cp["generation"]
+        genealogy_history=cp['genealogy_history']
         hof = cp["halloffame"]
         log = cp["logbook"]
 
@@ -541,10 +542,12 @@ def main(id,max_depth,generations,population_size,start_gen,num_of_evaluations=1
                                             num_of_evaluations=5,
                                             ))
         
-        # with open(f'id_{id}_individuals_generation.txt','+a') as f:
-        #     for gen in history.genealogy_history.values():
-        #         f.write(str(gen)+'\n')
-            
+        with open(f'id_{id}_individuals_generation.txt','+a') as f:
+            for gen in genealogy_history.values():
+                f.write(str(gen)+'\n')
+
+        with open(f'id_{id}_logbook.txt','+a') as f:
+            json.dump(log,f)
         # graph = networkx.DiGraph(history.genealogy_tree)
         # graph = graph.reverse()     # Make the graph top-down
         # colors = [toolbox.evaluate(history.genealogy_history[i])[0] for i in graph]
@@ -552,7 +555,7 @@ def main(id,max_depth,generations,population_size,start_gen,num_of_evaluations=1
         # plt.savefig(f'id_{id}_genealogy_tree.png')
 
         # files=[f'id_{id}_individuals_generation.txt',f'arquiteturas_validas_max_depth_{max_depth}.json']#,f'id_{id}_genealogy_tree.png']
-        files=[f'arquiteturas_validas_max_depth_{max_depth}.json']
+        files=[f'arquiteturas_validas_max_depth_{max_depth}.json',f'id_{id}_individuals_generation.txt',f'id_{id}_logbook.txt']
         filename_logs=save_logs(id)
         files.extend(filename_logs)
         send_results_2_aws(files)
