@@ -24,11 +24,11 @@ def _simple_algorithm_checkpoint(start_gen,logbook,toolbox,cxpb,mutpb,freq,ngen,
                 cp = dict(population=population, generation=gen, halloffame=halloffame,
                         logbook=logbook, rndstate=random.getstate())
 
-                with open(f"start_gen_1_to_gen_{gen+1}_checkpoint_name.pkl", "wb") as cp_file:
+                with open(f"start_gen_0_to_gen_{gen}_checkpoint_name.pkl", "wb") as cp_file:
                     pickle.dump(cp, cp_file)
         
     
-    return population,logbook
+    return population,logbook,halloffame
 
 
 
@@ -72,4 +72,4 @@ def simple_algorithm_checkpoint(toolbox,cxpb,mutpb,freq,ngen,stats,population=No
                                                         halloffame=halloffame,
                                                         checkpoint=checkpoint,
                                                         verbose=verbose)              
-    return population, logbook
+    return population, logbook,halloffame
