@@ -1,4 +1,4 @@
-for c in {1..29}
+for c in {0..30}
 do
 if [ $((c%2)) -eq 0 ];
 then
@@ -8,4 +8,3 @@ else
 fi
     sleep 1m
 done
-python3.8 NAS_GA.py -sg 30 --gpu 2 

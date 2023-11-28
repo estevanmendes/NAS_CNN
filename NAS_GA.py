@@ -385,7 +385,7 @@ def save_logs(id):
     
 
 
-def main(id,max_depth,generations,population_size,start_gen,num_of_evaluations=1,max_epochs=20,verbose=0):
+def main(id,max_depth,generations,population_size,start_gen,saving_generation,num_of_evaluations=1,max_epochs=20,verbose=0):
 
     @output_prints_decorator_factory(*default_filenames)
     def evaluate(individual,trainning_dataset,validation_dataset,testing_dataset,pool_of_features,fn_no_linear=None,max_epochs=20,num_of_evaluations=1,verbose=0,display=False):
@@ -533,7 +533,7 @@ def main(id,max_depth,generations,population_size,start_gen,num_of_evaluations=1
         hof = cp["halloffame"]
         log = cp["logbook"]
 
-    if gen==generations:
+    if gen==saving_generation:
         print('melhor:',hof[0])
         print(create_model(pool_of_features,hof[0],).summary())
         print(evaluate(hof[0],trainning_dataset=trainning_dataset.batch(10),
@@ -592,7 +592,8 @@ if __name__=="__main__":
         end_gen=start_gen+int(config['steps'])
     else:
         end_gen=30
-
+        
+    saving_generation=30
     testing=False
     id_user='teste_003_'
     global id
@@ -619,7 +620,8 @@ if __name__=="__main__":
          population_size=population_size,
          num_of_evaluations=num_of_evaluations,
          max_epochs=max_epochs,
-         start_gen=start_gen
+         start_gen=start_gen,
+         saving_generation=saving_generation
          )
     t2=time.time()
     dt=t2-t1
