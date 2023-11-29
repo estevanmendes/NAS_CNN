@@ -1,4 +1,4 @@
-from NAS.Models import architecture_feasiable,train_model,evaluate_model
+from NAS.Models import architecture_feasiable,train_model,evaluate_model,create_model
 from NAS.Utils import output_prints_decorator_factory
 import numpy as np
 from NAS.__init__ import pool_of_features,default_filenames
