@@ -219,9 +219,10 @@ def generate_individuals(pool_size,pool_of_features,pool_of_features_probability
             new_pool_individuals=np.array(new_pool_individuals)
             new_pool_individuals_valids=new_pool_individuals[np.where(new_pool_individuals.sum(axis=1)>0)[0]]
             pool_individuals_valids.extend(new_pool_individuals_valids.tolist())
-            
-            with open(f'arquiteturas_validas_max_depth_{max_depth}_size_{pool_size}.json','+a') as f:
-                json.dump(pool_individuals_valids,f)
+            print(f'{len(pool_individuals_valids)} valid architectures')
+
+        with open(f'arquiteturas_validas_max_depth_{max_depth}_size_{pool_size}.json','+w') as f:
+            json.dump(pool_individuals_valids,f)
 
 def get_random_layer(pool_of_features,pool_of_features_probability)->tf.keras.layers:
     """ selects one random layer from the pool of features"""
