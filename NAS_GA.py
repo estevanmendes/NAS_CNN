@@ -20,338 +20,338 @@ from typing import Any
 
 default_filenames=['detalhes_arquiteturas_testadas.txt','experimento_log.txt']
 
-def output_prints_decorator_factory(filename_in,filename_out=None):
-    def out_prints_decorator(f):
-        def wrapper(*args,**kwargs):
-            sys.stdout = open(filename_in, '+a')
-            results=f(*args,**kwargs)
-            if filename_out:
-                sys.stdout = open(filename_out, '+a')
+# def output_prints_decorator_factory(filename_in,filename_out=None):
+#     def out_prints_decorator(f):
+#         def wrapper(*args,**kwargs):
+#             sys.stdout = open(filename_in, '+a')
+#             results=f(*args,**kwargs)
+#             if filename_out:
+#                 sys.stdout = open(filename_out, '+a')
             
-            return results
-        return wrapper
+#             return results
+#         return wrapper
     
-    return out_prints_decorator
+#     return out_prints_decorator
 
-def load_datasets():
-    class Dataframe2ImageDataset:
-        @staticmethod
-        def load_image(filepath):
-            raw = tf.io.read_file(filepath)        
-            tensor = tf.io.decode_image(raw)
-            tensor = tf.cast(tensor, tf.float32) / 255.0
-            return tensor
+# def load_datasets():
+#     class Dataframe2ImageDataset:
+#         @staticmethod
+#         def load_image(filepath):
+#             raw = tf.io.read_file(filepath)        
+#             tensor = tf.io.decode_image(raw)
+#             tensor = tf.cast(tensor, tf.float32) / 255.0
+#             return tensor
 
-        def __init__(self,df,path_column,label_column) -> None:
-            self.paths=df[path_column].values
-            self.labels=np.eye(2)[df[label_column].values]
+#         def __init__(self,df,path_column,label_column) -> None:
+#             self.paths=df[path_column].values
+#             self.labels=np.eye(2)[df[label_column].values]
 
-        def create_dataset(self):
-            dataset = tf.data.Dataset.from_tensor_slices((self.paths,self.labels))
-            dataset = dataset.map(lambda filepath, label: (self.load_image(filepath), label))
-            # self.dataset=dataset
-            return dataset
+#         def create_dataset(self):
+#             dataset = tf.data.Dataset.from_tensor_slices((self.paths,self.labels))
+#             dataset = dataset.map(lambda filepath, label: (self.load_image(filepath), label))
+#             # self.dataset=dataset
+#             return dataset
         
-    trainning_df=pd.read_csv('trainning_dataset.csv')
-    validation_df=pd.read_csv('validation_dataset.csv')
-    testing_df=pd.read_csv('testing_dataset.csv')
+#     trainning_df=pd.read_csv('trainning_dataset.csv')
+#     validation_df=pd.read_csv('validation_dataset.csv')
+#     testing_df=pd.read_csv('testing_dataset.csv')
 
-    training_dataset=Dataframe2ImageDataset(trainning_df,'path','binary_label_code').create_dataset()
-    validation_dataset=Dataframe2ImageDataset(validation_df,'path','binary_label_code').create_dataset()
-    testing_dataset=Dataframe2ImageDataset(testing_df,'path','binary_label_code').create_dataset()
-    return training_dataset,validation_dataset,testing_dataset
+#     training_dataset=Dataframe2ImageDataset(trainning_df,'path','binary_label_code').create_dataset()
+#     validation_dataset=Dataframe2ImageDataset(validation_df,'path','binary_label_code').create_dataset()
+#     testing_dataset=Dataframe2ImageDataset(testing_df,'path','binary_label_code').create_dataset()
+#     return training_dataset,validation_dataset,testing_dataset
 
-def individuals(max_depth=15):
-    pool_of_features={1:{'layer':tf.keras.layers.Conv2D,
-                        'params':{'filters':64,'kernel_size':5,'strides':1,'padding':'valid','activation':'relu'}},
-                    2:{'layer':tf.keras.layers.Conv2D,
-                        'params':{'filters':32,'kernel_size':5,'strides':1,'padding':'valid','activation':'relu'}},
-                    3:{'layer':tf.keras.layers.Conv2D,
-                        'params':{'filters':16,'kernel_size':5,'strides':1,'padding':'valid','activation':'relu'}},
-                    4:{'layer':tf.keras.layers.Conv2D,
-                        'params':{'filters':8,'kernel_size':5,'strides':1,'padding':'valid','activation':'relu'}},
-                    5:{'layer':tf.keras.layers.Conv2D,
-                        'params':{'filters':64,'kernel_size':3,'strides':1,'padding':'valid','activation':'relu'}},
-                    6:{'layer':tf.keras.layers.Conv2D,
-                        'params':{'filters':32,'kernel_size':3,'strides':1,'padding':'valid','activation':'relu'}},
-                    7:{'layer':tf.keras.layers.Conv2D,
-                        'params':{'filters':16,'kernel_size':3,'strides':1,'padding':'valid','activation':'relu'}},
-                    8:{'layer':tf.keras.layers.Conv2D,
-                        'params':{'filters':8,'kernel_size':3,'strides':1,'padding':'valid','activation':'relu'}},
-                    9:{'layer':tf.keras.layers.Conv2D,
-                        'params':{'filters':8,'kernel_size':3,'strides':1,'padding':'valid','activation':'relu'}},
-                    10:{'layer':tf.keras.layers.Conv2D,
-                        'params':{'filters':64,'kernel_size':1,'strides':1,'padding':'valid','activation':'relu'}},
-                    11:{'layer':tf.keras.layers.Conv2D,
-                        'params':{'filters':32,'kernel_size':1,'strides':1,'padding':'valid','activation':'relu'}},
-                    12:{'layer':tf.keras.layers.Conv2D,
-                        'params':{'filters':16,'kernel_size':1,'strides':1,'padding':'valid','activation':'relu'}},
-                    13:{'layer':tf.keras.layers.Conv2D,
-                        'params':{'filters':8,'kernel_size':1,'strides':1,'padding':'valid','activation':'relu'}},
-                    14:{'layer':tf.keras.layers.Conv2D,
-                        'params':{'filters':8,'kernel_size':1,'strides':1,'padding':'valid','activation':'relu'}},
-                    15:{'layer':tf.keras.layers.BatchNormalization,
-                        'params':{}},
-                    16:{'layer':tf.keras.layers.MaxPool2D,
-                        'params':{'pool_size':(2,2)}},
-                    17:{'layer':tf.keras.layers.MaxPool2D,
-                        'params':{'pool_size':(4,4)}},
-                    18:{'layer':tf.keras.layers.MaxPool2D,
-                        'params':{'pool_size':(6,6)}},
-                    19:{'layer':tf.keras.layers.MaxPool2D,
-                        'params':{'pool_size':(8,8)}},
-                    20:{'layer':tf.keras.layers.MaxPool2D,
-                        'params':{'pool_size':(10,10)}},
-                    21:{'layer':tf.keras.layers.AveragePooling2D,
-                        'params':{'pool_size':(2,2)}},
-                    22:{'layer':tf.keras.layers.AveragePooling2D,
-                        'params':{'pool_size':(4,4)}},
-                    23:{'layer':tf.keras.layers.AveragePooling2D,
-                        'params':{'pool_size':(6,6)}},
-                    24:{'layer':tf.keras.layers.AveragePooling2D,
-                        'params':{'pool_size':(10,10)}},
-                    25:{'layer':tf.keras.layers.GlobalMaxPool2D,
-                        'params':{}}, 
-                    26:{'layer':tf.keras.layers.Dense,
-                        'params':{'units':100,'activation':'relu'}},
-                    27:{'layer':tf.keras.layers.Dense,
-                        'params':{'units':80,'activation':'relu'}},
-                    28:{'layer':tf.keras.layers.Dense,
-                        'params':{'units':60,'activation':'relu'}},
-                    29:{'layer':tf.keras.layers.Dense,
-                        'params':{'units':40,'activation':'relu'}}, 
-                    30:{'layer':tf.keras.layers.Dense,
-                        'params':{'units':20,'activation':'relu'}},
-                    31:{'layer':tf.keras.layers.Dense,
-                        'params':{'units':10,'activation':'relu'}},
-                    32:{'layer':tf.keras.layers.Dense,
-                        'params':{'units':5,'activation':'relu'}},
-                    33:{'layer':None,
-                        'params':{}},
-                    34:{'layer':tf.keras.layers.Dropout,
-                        'params':{'rate':0.5}},
-                    35:{'layer':tf.keras.layers.Dropout,
-                        'params':{'rate':0.25}},
-                    36:{'layer':tf.keras.layers.Dropout,
-                        'params':{'rate':0.15}}
+# def individuals(max_depth=15):
+#     pool_of_features={1:{'layer':tf.keras.layers.Conv2D,
+#                         'params':{'filters':64,'kernel_size':5,'strides':1,'padding':'valid','activation':'relu'}},
+#                     2:{'layer':tf.keras.layers.Conv2D,
+#                         'params':{'filters':32,'kernel_size':5,'strides':1,'padding':'valid','activation':'relu'}},
+#                     3:{'layer':tf.keras.layers.Conv2D,
+#                         'params':{'filters':16,'kernel_size':5,'strides':1,'padding':'valid','activation':'relu'}},
+#                     4:{'layer':tf.keras.layers.Conv2D,
+#                         'params':{'filters':8,'kernel_size':5,'strides':1,'padding':'valid','activation':'relu'}},
+#                     5:{'layer':tf.keras.layers.Conv2D,
+#                         'params':{'filters':64,'kernel_size':3,'strides':1,'padding':'valid','activation':'relu'}},
+#                     6:{'layer':tf.keras.layers.Conv2D,
+#                         'params':{'filters':32,'kernel_size':3,'strides':1,'padding':'valid','activation':'relu'}},
+#                     7:{'layer':tf.keras.layers.Conv2D,
+#                         'params':{'filters':16,'kernel_size':3,'strides':1,'padding':'valid','activation':'relu'}},
+#                     8:{'layer':tf.keras.layers.Conv2D,
+#                         'params':{'filters':8,'kernel_size':3,'strides':1,'padding':'valid','activation':'relu'}},
+#                     9:{'layer':tf.keras.layers.Conv2D,
+#                         'params':{'filters':8,'kernel_size':3,'strides':1,'padding':'valid','activation':'relu'}},
+#                     10:{'layer':tf.keras.layers.Conv2D,
+#                         'params':{'filters':64,'kernel_size':1,'strides':1,'padding':'valid','activation':'relu'}},
+#                     11:{'layer':tf.keras.layers.Conv2D,
+#                         'params':{'filters':32,'kernel_size':1,'strides':1,'padding':'valid','activation':'relu'}},
+#                     12:{'layer':tf.keras.layers.Conv2D,
+#                         'params':{'filters':16,'kernel_size':1,'strides':1,'padding':'valid','activation':'relu'}},
+#                     13:{'layer':tf.keras.layers.Conv2D,
+#                         'params':{'filters':8,'kernel_size':1,'strides':1,'padding':'valid','activation':'relu'}},
+#                     14:{'layer':tf.keras.layers.Conv2D,
+#                         'params':{'filters':8,'kernel_size':1,'strides':1,'padding':'valid','activation':'relu'}},
+#                     15:{'layer':tf.keras.layers.BatchNormalization,
+#                         'params':{}},
+#                     16:{'layer':tf.keras.layers.MaxPool2D,
+#                         'params':{'pool_size':(2,2)}},
+#                     17:{'layer':tf.keras.layers.MaxPool2D,
+#                         'params':{'pool_size':(4,4)}},
+#                     18:{'layer':tf.keras.layers.MaxPool2D,
+#                         'params':{'pool_size':(6,6)}},
+#                     19:{'layer':tf.keras.layers.MaxPool2D,
+#                         'params':{'pool_size':(8,8)}},
+#                     20:{'layer':tf.keras.layers.MaxPool2D,
+#                         'params':{'pool_size':(10,10)}},
+#                     21:{'layer':tf.keras.layers.AveragePooling2D,
+#                         'params':{'pool_size':(2,2)}},
+#                     22:{'layer':tf.keras.layers.AveragePooling2D,
+#                         'params':{'pool_size':(4,4)}},
+#                     23:{'layer':tf.keras.layers.AveragePooling2D,
+#                         'params':{'pool_size':(6,6)}},
+#                     24:{'layer':tf.keras.layers.AveragePooling2D,
+#                         'params':{'pool_size':(10,10)}},
+#                     25:{'layer':tf.keras.layers.GlobalMaxPool2D,
+#                         'params':{}}, 
+#                     26:{'layer':tf.keras.layers.Dense,
+#                         'params':{'units':100,'activation':'relu'}},
+#                     27:{'layer':tf.keras.layers.Dense,
+#                         'params':{'units':80,'activation':'relu'}},
+#                     28:{'layer':tf.keras.layers.Dense,
+#                         'params':{'units':60,'activation':'relu'}},
+#                     29:{'layer':tf.keras.layers.Dense,
+#                         'params':{'units':40,'activation':'relu'}}, 
+#                     30:{'layer':tf.keras.layers.Dense,
+#                         'params':{'units':20,'activation':'relu'}},
+#                     31:{'layer':tf.keras.layers.Dense,
+#                         'params':{'units':10,'activation':'relu'}},
+#                     32:{'layer':tf.keras.layers.Dense,
+#                         'params':{'units':5,'activation':'relu'}},
+#                     33:{'layer':None,
+#                         'params':{}},
+#                     34:{'layer':tf.keras.layers.Dropout,
+#                         'params':{'rate':0.5}},
+#                     35:{'layer':tf.keras.layers.Dropout,
+#                         'params':{'rate':0.25}},
+#                     36:{'layer':tf.keras.layers.Dropout,
+#                         'params':{'rate':0.15}}
                         
-                    }
+#                     }
 
-    pool_of_features_probability=np.array([3,3,3,3,3,3,3,3,3,3,3,3,3,3,20,3,3,3,3,3,3,3,3,9,3,3,3,3,3,3,3,3,20,2,2,2])
-    pool_of_features_probability=pool_of_features_probability/pool_of_features_probability.sum()
-    return pool_of_features,pool_of_features_probability
+#     pool_of_features_probability=np.array([3,3,3,3,3,3,3,3,3,3,3,3,3,3,20,3,3,3,3,3,3,3,3,9,3,3,3,3,3,3,3,3,20,2,2,2])
+#     pool_of_features_probability=pool_of_features_probability/pool_of_features_probability.sum()
+#     return pool_of_features,pool_of_features_probability
 
-def check_flatten_need(model:tf.keras.Sequential,layer_to_be_add:tf.keras.layers,debug=False)->tf.keras.Sequential:
+# def check_flatten_need(model:tf.keras.Sequential,layer_to_be_add:tf.keras.layers,debug=False)->tf.keras.Sequential:
     
-    """
-        Checks if it is required to add a flatten layern, in order of connect dense layers into Convolutional and Maxpooling layers.
-    """
-    assert 'dense' not in tf.keras.layers.BatchNormalization.__doc__.lower()[:30]
-    assert 'dense' not in tf.keras.layers.Conv2D.__doc__.lower()[:30]
-    assert 'dense' not in tf.keras.layers.MaxPooling2D.__doc__.lower()[:30]
-    assert 'dense' not in tf.keras.layers.GlobalAvgPool2D.__doc__.lower()[:30]
-    assert 'dense' in tf.keras.layers.Dense.__doc__.lower()[:30]
+#     """
+#         Checks if it is required to add a flatten layern, in order of connect dense layers into Convolutional and Maxpooling layers.
+#     """
+#     assert 'dense' not in tf.keras.layers.BatchNormalization.__doc__.lower()[:30]
+#     assert 'dense' not in tf.keras.layers.Conv2D.__doc__.lower()[:30]
+#     assert 'dense' not in tf.keras.layers.MaxPooling2D.__doc__.lower()[:30]
+#     assert 'dense' not in tf.keras.layers.GlobalAvgPool2D.__doc__.lower()[:30]
+#     assert 'dense' in tf.keras.layers.Dense.__doc__.lower()[:30]
 
-    assert 'conv' not in tf.keras.layers.BatchNormalization.__doc__.lower()[:30]
-    assert 'conv' in tf.keras.layers.Conv2D.__doc__.lower()[:30]
-    assert 'conv' not in tf.keras.layers.MaxPooling2D.__doc__.lower()[:30]
-    assert 'conv' not in tf.keras.layers.GlobalAvgPool2D.__doc__.lower()[:30]
-    assert 'conv' not in tf.keras.layers.Dense.__doc__.lower()[:30]
+#     assert 'conv' not in tf.keras.layers.BatchNormalization.__doc__.lower()[:30]
+#     assert 'conv' in tf.keras.layers.Conv2D.__doc__.lower()[:30]
+#     assert 'conv' not in tf.keras.layers.MaxPooling2D.__doc__.lower()[:30]
+#     assert 'conv' not in tf.keras.layers.GlobalAvgPool2D.__doc__.lower()[:30]
+#     assert 'conv' not in tf.keras.layers.Dense.__doc__.lower()[:30]
 
-    assert 'pool' not in tf.keras.layers.BatchNormalization.__doc__.lower()[:30]
-    assert 'pool' not in tf.keras.layers.Conv2D.__doc__.lower()[:30]
-    assert 'pool' in tf.keras.layers.MaxPooling2D.__doc__.lower()[:30]
-    assert 'pool' in tf.keras.layers.GlobalAvgPool2D.__doc__.lower()[:30]
-    assert 'pool' not in tf.keras.layers.Dense.__doc__.lower()[:30]
+#     assert 'pool' not in tf.keras.layers.BatchNormalization.__doc__.lower()[:30]
+#     assert 'pool' not in tf.keras.layers.Conv2D.__doc__.lower()[:30]
+#     assert 'pool' in tf.keras.layers.MaxPooling2D.__doc__.lower()[:30]
+#     assert 'pool' in tf.keras.layers.GlobalAvgPool2D.__doc__.lower()[:30]
+#     assert 'pool' not in tf.keras.layers.Dense.__doc__.lower()[:30]
     
-    if debug:
-        print('layer to add :',layer_to_be_add)
-    layers=model.layers
-    if len(layers)>0:
-        if 'dense' in layer_to_be_add.__doc__.lower()[:30]:
-            for previus_layer in np.flip(layers):
-                if 'dense' in previus_layer.__doc__.lower()[:30] or 'flat' in previus_layer.__doc__.lower()[:30] :
-                    break
-                elif ('conv' in previus_layer.__doc__.lower()[:30] or 'pool' in previus_layer.__doc__.lower()[:30]):
-                    model.add(tf.keras.layers.Flatten())
-                    return model
+#     if debug:
+#         print('layer to add :',layer_to_be_add)
+#     layers=model.layers
+#     if len(layers)>0:
+#         if 'dense' in layer_to_be_add.__doc__.lower()[:30]:
+#             for previus_layer in np.flip(layers):
+#                 if 'dense' in previus_layer.__doc__.lower()[:30] or 'flat' in previus_layer.__doc__.lower()[:30] :
+#                     break
+#                 elif ('conv' in previus_layer.__doc__.lower()[:30] or 'pool' in previus_layer.__doc__.lower()[:30]):
+#                     model.add(tf.keras.layers.Flatten())
+#                     return model
     
-    return model
+#     return model
 
 
 
-def architecture_feasiable(pool_of_features,individual,debug=False):
-    """
-    creates the model indicated by the individual. 
-    """
-    model=tf.keras.Sequential()
-    non_empty_layer=0
-    for (index,gene) in enumerate(individual):
-        layer_details=pool_of_features[gene]      
+# def architecture_feasiable(pool_of_features,individual,debug=False):
+#     """
+#     creates the model indicated by the individual. 
+#     """
+#     model=tf.keras.Sequential()
+#     non_empty_layer=0
+#     for (index,gene) in enumerate(individual):
+#         layer_details=pool_of_features[gene]      
         
             
-        if layer_details['layer'] is not None:
+#         if layer_details['layer'] is not None:
             
-            if non_empty_layer==0:
-                layer_details['params']['input_shape']=(100,100,3)
-                layer=layer_details['layer'](**layer_details['params'])
-            else:
-                layer=layer_details['layer'](**layer_details['params'])
-                model=check_flatten_need(model,layer,debug=debug)
+#             if non_empty_layer==0:
+#                 layer_details['params']['input_shape']=(100,100,3)
+#                 layer=layer_details['layer'](**layer_details['params'])
+#             else:
+#                 layer=layer_details['layer'](**layer_details['params'])
+#                 model=check_flatten_need(model,layer,debug=debug)
 
-            try:            
-                model.add(layer)
-                non_empty_layer+=1
+#             try:            
+#                 model.add(layer)
+#                 non_empty_layer+=1
 
-            except:
-                model=None
-                return [-1]*len(individual)
+#             except:
+#                 model=None
+#                 return [-1]*len(individual)
                   
-    return individual
+    # return individual
 
-def generate_individuals(pool_size,pool_of_features,pool_of_features_probability,max_depth):
-        pool_individuals_valids=[]
-        while len(pool_individuals_valids)<pool_size:
-            pool_individuals=np.random.choice(list(pool_of_features.keys()),size=(10,max_depth),p=pool_of_features_probability)
-            new_pool_individuals=[]
-            for ind in pool_individuals:
-                new_pool_individuals.append(architecture_feasiable(pool_of_features=pool_of_features,individual=ind))
+# def generate_individuals(pool_size,pool_of_features,pool_of_features_probability,max_depth):
+#         pool_individuals_valids=[]
+#         while len(pool_individuals_valids)<pool_size:
+#             pool_individuals=np.random.choice(list(pool_of_features.keys()),size=(10,max_depth),p=pool_of_features_probability)
+#             new_pool_individuals=[]
+#             for ind in pool_individuals:
+#                 new_pool_individuals.append(architecture_feasiable(pool_of_features=pool_of_features,individual=ind))
 
-            new_pool_individuals=np.array(new_pool_individuals)
-            new_pool_individuals_valids=new_pool_individuals[np.where(new_pool_individuals.sum(axis=1)>0)[0]]
-            pool_individuals_valids.extend(new_pool_individuals_valids.tolist())
-            print(f'{len(pool_individuals_valids)} valid architectures')
+#             new_pool_individuals=np.array(new_pool_individuals)
+#             new_pool_individuals_valids=new_pool_individuals[np.where(new_pool_individuals.sum(axis=1)>0)[0]]
+#             pool_individuals_valids.extend(new_pool_individuals_valids.tolist())
+#             print(f'{len(pool_individuals_valids)} valid architectures')
 
-        with open(f'arquiteturas_validas_max_depth_{max_depth}_size_{pool_size}.json','+w') as f:
-            json.dump(pool_individuals_valids,f)
+#         with open(f'arquiteturas_validas_max_depth_{max_depth}_size_{pool_size}.json','+w') as f:
+#             json.dump(pool_individuals_valids,f)
 
-def get_random_layer(pool_of_features,pool_of_features_probability)->tf.keras.layers:
-    """ selects one random layer from the pool of features"""
-    layer_index=np.random.choice(list(pool_of_features.keys()),1,p=pool_of_features_probability)[0]
-    layer_details=pool_of_features[layer_index]
-    if layer_details['layer'] is not None:
-        layer=layer_details['layer'](**layer_details['params'])
-    else:
-        layer=get_random_layer()
+# def get_random_layer(pool_of_features,pool_of_features_probability)->tf.keras.layers:
+#     """ selects one random layer from the pool of features"""
+#     layer_index=np.random.choice(list(pool_of_features.keys()),1,p=pool_of_features_probability)[0]
+#     layer_details=pool_of_features[layer_index]
+#     if layer_details['layer'] is not None:
+#         layer=layer_details['layer'](**layer_details['params'])
+#     else:
+#         layer=get_random_layer()
         
     
-    return layer
+#     return layer
 
-def check_dimension_compatibility(model:tf.keras.Sequential,layer:tf.keras.layers,pool_of_features,pool_of_features_probability,debug=False) -> tf.keras.layers:
-    """
-    checks if it is feasible to add the intended layer 
-    """
-    try:
-        ### dumb way of check compatibilty
-        model=check_flatten_need(model,layer,debug)
-        model.add(layer)
-        # model.pop()
-        # if added:
-        #     model.pop()
+# def check_dimension_compatibility(model:tf.keras.Sequential,layer:tf.keras.layers,pool_of_features,pool_of_features_probability,debug=False) -> tf.keras.layers:
+#     """
+#     checks if it is feasible to add the intended layer 
+#     """
+#     try:
+#         ### dumb way of check compatibilty
+#         model=check_flatten_need(model,layer,debug)
+#         model.add(layer)
+#         # model.pop()
+#         # if added:
+#         #     model.pop()
                 
-    except:
-        if debug:
-            print('Dimension compatibility error')
+#     except:
+#         if debug:
+#             print('Dimension compatibility error')
 
-        layer=get_random_layer(pool_of_features,pool_of_features_probability)
-        model=check_dimension_compatibility(model,layer,pool_of_features,pool_of_features_probability)
+#         layer=get_random_layer(pool_of_features,pool_of_features_probability)
+#         model=check_dimension_compatibility(model,layer,pool_of_features,pool_of_features_probability)
 
-    if debug:
-        print('dimension outcome:',layer)
+#     if debug:
+#         print('dimension outcome:',layer)
 
-    return model
+#     return model
 
-def create_model(individual,pool_of_features,pool_of_features_probability,debug=False):
-    """
-    creates the model indicated by the individual. 
-    """
-    model=tf.keras.Sequential()
-    non_empty_layer=0
-    for (index,gene) in enumerate(individual):
-        layer_details=pool_of_features[gene]      
+# def create_model(individual,pool_of_features,pool_of_features_probability,debug=False):
+#     """
+#     creates the model indicated by the individual. 
+#     """
+#     model=tf.keras.Sequential()
+#     non_empty_layer=0
+#     for (index,gene) in enumerate(individual):
+#         layer_details=pool_of_features[gene]      
                     
-        if layer_details['layer'] is not None:
+#         if layer_details['layer'] is not None:
             
-            if non_empty_layer==0:
-                layer_details['params']['input_shape']=(100,100,3)
-                layer=layer_details['layer'](**layer_details['params'])
-                non_empty_layer+=1   
+#             if non_empty_layer==0:
+#                 layer_details['params']['input_shape']=(100,100,3)
+#                 layer=layer_details['layer'](**layer_details['params'])
+#                 non_empty_layer+=1   
 
-            else:
-                layer=layer_details['layer'](**layer_details['params'])     
-                model=check_dimension_compatibility(model,layer,pool_of_features,pool_of_features_probability,debug=debug)                
+#             else:
+#                 layer=layer_details['layer'](**layer_details['params'])     
+#                 model=check_dimension_compatibility(model,layer,pool_of_features,pool_of_features_probability,debug=debug)                
 
             
-    layer=tf.keras.layers.Dense(2,activation='softmax')
-    model=check_flatten_need(model,layer)
-    model.add(layer)
-    if debug:
-            print('model stack:',*model.layers,sep='\n')
+#     layer=tf.keras.layers.Dense(2,activation='softmax')
+#     model=check_flatten_need(model,layer)
+#     model.add(layer)
+#     if debug:
+#             print('model stack:',*model.layers,sep='\n')
 
-    learning_rate=tf.optimizers.schedules.ExponentialDecay(initial_learning_rate=.1,decay_steps=10000.,decay_rate=0.95)
-    opt=tf.optimizers.SGD(learning_rate=learning_rate)
-    model.compile(optimizer=opt, loss=tf.metrics.mse,metrics=tf.metrics.AUC(name='auc'))
+#     learning_rate=tf.optimizers.schedules.ExponentialDecay(initial_learning_rate=.1,decay_steps=10000.,decay_rate=0.95)
+#     opt=tf.optimizers.SGD(learning_rate=learning_rate)
+#     model.compile(optimizer=opt, loss=tf.metrics.mse,metrics=tf.metrics.AUC(name='auc'))
     
-    return model
+#     return model
 
-@output_prints_decorator_factory(*default_filenames)
-def train_model(trainning_dataset,validation_dataset,model:tf.keras.Sequential,individual,seed=None,verbose=0,max_epochs=20,display=False)-> tf.keras.Sequential:
+# @output_prints_decorator_factory(*default_filenames)
+# def train_model(trainning_dataset,validation_dataset,model:tf.keras.Sequential,individual,seed=None,verbose=0,max_epochs=20,display=False)-> tf.keras.Sequential:
 
-    log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
-    callback = tf.keras.callbacks.EarlyStopping(monitor='val_auc', patience=3)
-    model.fit(trainning_dataset,validation_data=validation_dataset,epochs=max_epochs,verbose=verbose,callbacks=[callback,tensorboard_callback])   
+#     log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+#     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+#     callback = tf.keras.callbacks.EarlyStopping(monitor='val_auc', patience=3)
+#     model.fit(trainning_dataset,validation_data=validation_dataset,epochs=max_epochs,verbose=verbose,callbacks=[callback,tensorboard_callback])   
 
-    return model
+#     return model
 
-def evaluate_model(testing_dataset,model:tf.keras.Sequential,verbose=0)->float:
+# def evaluate_model(testing_dataset,model:tf.keras.Sequential,verbose=0)->float:
     _,metric=model.evaluate(testing_dataset,verbose=verbose)
     return metric
 
-def choice(a,p):
-    return np.random.choice(a=a,size=1,p=p)[0]
+# def choice(a,p):
+#     return np.random.choice(a=a,size=1,p=p)[0]
 
-def initIndividual(icls, content):
-    return icls(content)
+# def initIndividual(icls, content):
+#     return icls(content)
 
-def initPopulation(pcls, ind_init,pop_size,trial_name, filename):
-    with open(filename, "r") as pop_file:
-        contents = np.array(json.load(pop_file))
-    # contents=np.array(contents)
-    index_ind_selected=np.random.choice(np.arange(0,len(contents)),size=pop_size,replace=False)
-    pop=contents[index_ind_selected,:]
+# def initPopulation(pcls, ind_init,pop_size,trial_name, filename):
+#     with open(filename, "r") as pop_file:
+#         contents = np.array(json.load(pop_file))
+#     # contents=np.array(contents)
+#     index_ind_selected=np.random.choice(np.arange(0,len(contents)),size=pop_size,replace=False)
+#     pop=contents[index_ind_selected,:]
 
-    with open(trial_name+'_population_selected.json','w') as f:
-        json.dump(pop.tolist(),f)
+#     with open(trial_name+'_population_selected.json','w') as f:
+#         json.dump(pop.tolist(),f)
 
-    return pcls(ind_init(c) for c in pop)
+#     return pcls(ind_init(c) for c in pop)
 
-def send_results_2_aws(files):
-    client=aws.generate_s3_client()  
-    bucket='deeplearning-puc'
-    for file in files:
-        aws.upload_file(client,file,bucket=bucket)
+# def send_results_2_aws(files):
+#     client=aws.generate_s3_client()  
+#     bucket='deeplearning-puc'
+#     for file in files:
+#         aws.upload_file(client,file,bucket=bucket)
 
-def check_aws_keys():
+# def check_aws_keys():
     
-    env1=os.getenv('ACCESS_KEY')
-    env2=os.getenv('SECRET_KEY')
-    if not (env1 and env2):
-        print('\n')
-        print('#'*20)
-        print('Keys to upload results were not provided')
-        print('#'*20)
-        print('\n')
+#     env1=os.getenv('ACCESS_KEY')
+#     env2=os.getenv('SECRET_KEY')
+#     if not (env1 and env2):
+#         print('\n')
+#         print('#'*20)
+#         print('Keys to upload results were not provided')
+#         print('#'*20)
+#         print('\n')
 
-def paralelized_trianning():
-    pass
+# def paralelized_trianning():
+#     pass
 
-def save_logs(id):
-    new_filenames=[id+'_'+filename for filename in default_filenames]
-    for filename,new_filename in zip(default_filenames,new_filenames):
-        os.rename(filename,new_filename)
+# def save_logs(id):
+#     new_filenames=[id+'_'+filename for filename in default_filenames]
+#     for filename,new_filename in zip(default_filenames,new_filenames):
+#         os.rename(filename,new_filename)
     
-    return new_filenames
+#     return new_filenames
     
 def feasiable_model(individual):
     """
