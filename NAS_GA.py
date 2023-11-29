@@ -205,8 +205,7 @@ def architecture_feasiable(pool_of_features,individual,debug=False):
             except:
                 model=None
                 return [-1]*len(individual)
-
-        
+                  
     return individual
 
 def generate_individuals(pool_size,pool_of_features,pool_of_features_probability,max_depth):
@@ -220,9 +219,9 @@ def generate_individuals(pool_size,pool_of_features,pool_of_features_probability
             new_pool_individuals=np.array(new_pool_individuals)
             new_pool_individuals_valids=new_pool_individuals[np.where(new_pool_individuals.sum(axis=1)>0)[0]]
             pool_individuals_valids.extend(new_pool_individuals_valids)
-
-        with open(f'arquiteturas_validas_max_depth_{max_depth}_size{pool_size}.json','+w') as f:
-            json.dump(pool_individuals_valids,f)
+            pool_individuals_valids=np.array(pool_individuals_valids)
+            with open(f'arquiteturas_validas_max_depth_{max_depth}_size_{pool_size}.json','+a') as f:
+                json.dump(pool_individuals_valids.tolist(),f)
 
 def get_random_layer(pool_of_features,pool_of_features_probability)->tf.keras.layers:
     """ selects one random layer from the pool of features"""
@@ -415,7 +414,7 @@ def main(id,max_depth,generations,population_size,start_gen,saving_generation,nu
     pool_of_features,pool_of_features_probability=individuals(max_depth=max_depth)
 
     pool_size=100
-    if not os.path.isfile(f'arquiteturas_validas_max_depth_{max_depth}_size{pool_size}.json'): 
+    if not os.path.isfile(f'arquiteturas_validas_max_depth_{max_depth}_size_{pool_size}.json'): 
         print('Pool of valid archtectures about to be created')
         generate_individuals(pool_size,pool_of_features,pool_of_features_probability,max_depth=max_depth)
         
@@ -445,7 +444,7 @@ def main(id,max_depth,generations,population_size,start_gen,saving_generation,nu
         creator.create("Individual", list, fitness=creator.FitnessMax)
         toolbox = base.Toolbox()
         toolbox.register("individual_guess", initIndividual, creator.Individual)
-        toolbox.register("population_guess", initPopulation, list, toolbox.individual_guess, filename=f'arquiteturas_validas_max_depth_{max_depth}_size{pool_size}.json',trial_name=id)
+        toolbox.register("population_guess", initPopulation, list, toolbox.individual_guess, filename=f'arquiteturas_validas_max_depth_{max_depth}_size_{pool_size}.json',trial_name=id)
 
         toolbox.register("mate", tools.cxOnePoint)
         toolbox.register("mutate", tools.mutUniformInt,low=0,up=len(pool_of_features), indpb=0.1)
