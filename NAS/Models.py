@@ -53,6 +53,7 @@ def create_model(individual,pool_of_features,pool_of_features_probability,debug=
             if non_empty_layer==0:
                 layer_details['params']['input_shape']=(100,100,3)
                 layer=layer_details['layer'](**layer_details['params'])
+                model.add(layer)
                 non_empty_layer+=1   
 
             else:
