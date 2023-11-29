@@ -222,7 +222,7 @@ def generate_individuals(pool_size,pool_of_features,pool_of_features_probability
             pool_individuals_valids.append(new_pool_individuals_valids)
 
         with open(f'arquiteturas_validas_max_depth_{max_depth}.json','+w') as f:
-            json.dump(pool_individuals_valids.tolist(),f)
+            json.dump(pool_individuals_valids,f)
 
 def get_random_layer(pool_of_features,pool_of_features_probability)->tf.keras.layers:
     """ selects one random layer from the pool of features"""
