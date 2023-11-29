@@ -202,6 +202,7 @@ def architecture_feasiable(pool_of_features,individual,debug=False):
             try:            
                 model.add(layer)
                 non_empty_layer+=1
+
             except:
                 model=None
                 return [-1]*len(individual)
@@ -274,10 +275,11 @@ def create_model(individual,pool_of_features,pool_of_features_probability,debug=
             if non_empty_layer==0:
                 layer_details['params']['input_shape']=(100,100,3)
                 layer=layer_details['layer'](**layer_details['params'])
+                non_empty_layer+=1   
+
             else:
                 layer=layer_details['layer'](**layer_details['params'])     
                 model=check_dimension_compatibility(model,layer,pool_of_features,pool_of_features_probability,debug=debug)                
-                non_empty_layer+=1   
 
             
     layer=tf.keras.layers.Dense(2,activation='softmax')
@@ -377,7 +379,7 @@ def main(id,max_depth,generations,population_size,start_gen,saving_generation,nu
             
             
             if seed==seeds[0]:
-                model_raw=create_model(individual,pool_of_features,pool_of_features_probability)
+                model_raw=create_model(individual,pool_of_features,pool_of_features_probability,debug=True)
                 print('\n'*2)
                 print(f'individual: {individual}')
                 print(model_raw.summary())
