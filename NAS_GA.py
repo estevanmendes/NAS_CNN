@@ -385,7 +385,7 @@ def save_logs(id):
     
     return new_filenames
     
-def feasiable_model(individual,pool_of_features=pool_of_features):
+def feasiable_model(individual):
     """
     delta penalty decorator does not accept args and kwargs for feasible function. Then, global variable will be used as a workaround
     """
