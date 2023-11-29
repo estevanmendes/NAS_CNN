@@ -1,7 +1,7 @@
 import tensorflow as tf
 import numpy as np
-from NAS.Pool import get_random_layer
-from NAS.Utils import output_prints_decorator_factory
+from Pool import get_random_layer
+from Utils import output_prints_decorator_factory
 from NAS import default_filenames
 import datetime
 

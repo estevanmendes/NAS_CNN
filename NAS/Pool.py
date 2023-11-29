@@ -1,7 +1,7 @@
 import tensorflow as tf
 import numpy as np
 from NAS import pool_of_features, pool_of_features_probability
-from NAS.Models import architecture_feasiable
+from Models import architecture_feasiable
 import json
 
 
