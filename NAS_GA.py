@@ -167,16 +167,16 @@ def check_flatten_need(model:tf.keras.Sequential,layer_to_be_add:tf.keras.layers
     if debug:
         print('layer to add :',layer_to_be_add)
     layers=model.layers
-    if len(layers)>1:
+    if len(layers)>0:
         if 'dense' in layer_to_be_add.__doc__.lower()[:30]:
             for previus_layer in np.flip(layers):
                 if 'dense' in previus_layer.__doc__.lower()[:30] or 'flat' in previus_layer.__doc__.lower()[:30] :
                     break
                 elif ('conv' in previus_layer.__doc__.lower()[:30] or 'pool' in previus_layer.__doc__.lower()[:30]):
                     model.add(tf.keras.layers.Flatten())
-                    break
+                    return model
+    
     return model
-
 
 
 
@@ -201,6 +201,7 @@ def architecture_feasiable(pool_of_features,individual,debug=False):
 
             try:            
                 model.add(layer)
+                non_empty_layer+=1
             except:
                 model=None
                 return [-1]*len(individual)
@@ -238,55 +239,22 @@ def check_dimension_compatibility(model:tf.keras.Sequential,layer:tf.keras.layer
     """
     try:
         ### dumb way of check compatibilty
+        model=check_flatten_need(model,layer,debug)
         model.add(layer)
-        model.pop()
-        
-    except ValueError:
+        # model.pop()
+        # if added:
+        #     model.pop()
+                
+    except:
         if debug:
             print('Dimension compatibility error')
 
         layer=get_random_layer(pool_of_features,pool_of_features_probability)
-        layer=check_dimension_compatibility(model,layer,pool_of_features,pool_of_features_probability)
+        model=check_dimension_compatibility(model,layer,pool_of_features,pool_of_features_probability)
 
     if debug:
         print('dimension outcome:',layer)
 
-    return layer
-
-def check_flatten_need(model:tf.keras.Sequential,layer_to_be_add:tf.keras.layers,debug=False)->tf.keras.Sequential:
-    
-    """
-        Checks if it is required to add a flatten layern, in order of connect dense layers into Convolutional and Maxpooling layers.
-    """
-    assert 'dense' not in tf.keras.layers.BatchNormalization.__doc__.lower()[:30]
-    assert 'dense' not in tf.keras.layers.Conv2D.__doc__.lower()[:30]
-    assert 'dense' not in tf.keras.layers.MaxPooling2D.__doc__.lower()[:30]
-    assert 'dense' not in tf.keras.layers.GlobalAvgPool2D.__doc__.lower()[:30]
-    assert 'dense' in tf.keras.layers.Dense.__doc__.lower()[:30]
-
-    assert 'conv' not in tf.keras.layers.BatchNormalization.__doc__.lower()[:30]
-    assert 'conv' in tf.keras.layers.Conv2D.__doc__.lower()[:30]
-    assert 'conv' not in tf.keras.layers.MaxPooling2D.__doc__.lower()[:30]
-    assert 'conv' not in tf.keras.layers.GlobalAvgPool2D.__doc__.lower()[:30]
-    assert 'conv' not in tf.keras.layers.Dense.__doc__.lower()[:30]
-
-    assert 'pool' not in tf.keras.layers.BatchNormalization.__doc__.lower()[:30]
-    assert 'pool' not in tf.keras.layers.Conv2D.__doc__.lower()[:30]
-    assert 'pool' in tf.keras.layers.MaxPooling2D.__doc__.lower()[:30]
-    assert 'pool' in tf.keras.layers.GlobalAvgPool2D.__doc__.lower()[:30]
-    assert 'pool' not in tf.keras.layers.Dense.__doc__.lower()[:30]
-    
-    if debug:
-        print('layer to add :',layer_to_be_add)
-    layers=model.layers
-    if len(layers)>0:
-        if 'dense' in layer_to_be_add.__doc__.lower()[:30]:
-            for previus_layer in np.flip(layers):
-                if 'dense' in previus_layer.__doc__.lower()[:30] or 'flat' in previus_layer.__doc__.lower()[:30] :
-                    break
-                elif ('conv' in previus_layer.__doc__.lower()[:30] or 'pool' in previus_layer.__doc__.lower()[:30]):
-                    model.add(tf.keras.layers.Flatten())
-                    break
     return model
 
 def create_model(individual,pool_of_features,pool_of_features_probability,debug=False):
@@ -304,12 +272,9 @@ def create_model(individual,pool_of_features,pool_of_features_probability,debug=
                 layer_details['params']['input_shape']=(100,100,3)
                 layer=layer_details['layer'](**layer_details['params'])
             else:
-                layer=layer_details['layer'](**layer_details['params'])                
-                layer=check_dimension_compatibility(model,layer,pool_of_features,pool_of_features_probability,debug=debug)
-                model=check_flatten_need(model,layer,debug=debug)
-                
-            model.add(layer)
-            non_empty_layer+=1   
+                layer=layer_details['layer'](**layer_details['params'])     
+                model=check_dimension_compatibility(model,layer,pool_of_features,pool_of_features_probability,debug=debug)                
+                non_empty_layer+=1   
 
             
     layer=tf.keras.layers.Dense(2,activation='softmax')
@@ -491,7 +456,7 @@ def main(id,max_depth,generations,population_size,start_gen,saving_generation,nu
                                             verbose=verbose,
                                             pool_of_features=pool_of_features,
                                             pool_of_features_probability=pool_of_features_probability)
-        toolbox.decorate("evaluate", tools.DeltaPenalty(feasiable_model, 0))
+        toolbox.decorate("evaluate", tools.DeltaPenalty(feasiable_model, -10))
 
 
         # Decorate the variation operators
