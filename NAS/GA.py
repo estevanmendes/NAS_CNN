@@ -1,7 +1,7 @@
-from Models import *
-from Utils import output_prints_decorator_factory
+from NAS.Models import architecture_feasiable,train_model,evaluate_model
+from NAS.Utils import output_prints_decorator_factory
 import numpy as np
-from NAS import pool_of_features,default_filenames
+from NAS.__init__ import pool_of_features,default_filenames
 import json
 import random
 import tensorflow as tf

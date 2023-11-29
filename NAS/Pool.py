@@ -1,7 +1,8 @@
 import tensorflow as tf
 import numpy as np
-from NAS import pool_of_features, pool_of_features_probability
-from Models import architecture_feasiable
+from NAS.Models import architecture_feasiable
+from NAS.__init__ import pool_of_features, pool_of_features_probability
+
 import json
 
 
@@ -87,30 +88,19 @@ import json
 
 
 
-def generate_individuals(pool_size,pool_of_features,pool_of_features_probability,max_depth):
-        pool_individuals_valids=[]
-        while len(pool_individuals_valids)<pool_size:
-            pool_individuals=np.random.choice(list(pool_of_features.keys()),size=(10,max_depth),p=pool_of_features_probability)
-            new_pool_individuals=[]
-            for ind in pool_individuals:
-                new_pool_individuals.append(architecture_feasiable(pool_of_features=pool_of_features,individual=ind))
+# def generate_individuals(pool_size,pool_of_features,pool_of_features_probability,max_depth):
+#         pool_individuals_valids=[]
+#         while len(pool_individuals_valids)<pool_size:
+#             pool_individuals=np.random.choice(list(pool_of_features.keys()),size=(10,max_depth),p=pool_of_features_probability)
+#             new_pool_individuals=[]
+#             for ind in pool_individuals:
+#                 new_pool_individuals.append(architecture_feasiable(pool_of_features=pool_of_features,individual=ind))
 
-            new_pool_individuals=np.array(new_pool_individuals)
-            new_pool_individuals_valids=new_pool_individuals[np.where(new_pool_individuals.sum(axis=1)>0)[0]]
-            pool_individuals_valids.extend(new_pool_individuals_valids.tolist())
-            print(f'{len(pool_individuals_valids)} valid architectures')
+#             new_pool_individuals=np.array(new_pool_individuals)
+#             new_pool_individuals_valids=new_pool_individuals[np.where(new_pool_individuals.sum(axis=1)>0)[0]]
+#             pool_individuals_valids.extend(new_pool_individuals_valids.tolist())
+#             print(f'{len(pool_individuals_valids)} valid architectures')
 
-        with open(f'arquiteturas_validas_max_depth_{max_depth}_size_{pool_size}.json','+w') as f:
-            json.dump(pool_individuals_valids,f)
+#         with open(f'arquiteturas_validas_max_depth_{max_depth}_size_{pool_size}.json','+w') as f:
+#             json.dump(pool_individuals_valids,f)
 
-def get_random_layer(pool_of_features,pool_of_features_probability)->tf.keras.layers:
-    """ selects one random layer from the pool of features"""
-    layer_index=np.random.choice(list(pool_of_features.keys()),1,p=pool_of_features_probability)[0]
-    layer_details=pool_of_features[layer_index]
-    if layer_details['layer'] is not None:
-        layer=layer_details['layer'](**layer_details['params'])
-    else:
-        layer=get_random_layer()
-        
-    
-    return layer

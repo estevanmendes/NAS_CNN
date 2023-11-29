@@ -11,10 +11,12 @@ import matplotlib.pyplot as plt
 from simple_ga_algorithms_checkpoint import *
 import argparse
 from NAS.Utils import *
-from NAS.Models import *
-from NAS.Pool import *
 from NAS.dataset import *
 from NAS.GA import *
+from NAS.Models import *
+from NAS.Pool import *
+
+
 import aws
 from NAS import default_filenames,pool_of_features,pool_of_features_probability
 

@@ -3,7 +3,7 @@ sys.path.append('..')
 import aws
 import numpy as np
 import os
-from NAS import default_filenames
+from NAS.__init__ import default_filenames
 
 def output_prints_decorator_factory(filename_in,filename_out=None):
     def out_prints_decorator(f):
