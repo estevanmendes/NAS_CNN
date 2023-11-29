@@ -177,7 +177,10 @@ def check_flatten_need(model:tf.keras.Sequential,layer_to_be_add:tf.keras.layers
                     break
     return model
 
-def architecture_feaseable(pool_of_features,individual,debug=False):
+
+
+
+def architecture_feasiable(pool_of_features,individual,debug=False):
     """
     creates the model indicated by the individual. 
     """
@@ -193,9 +196,9 @@ def architecture_feaseable(pool_of_features,individual,debug=False):
                 layer_details['params']['input_shape']=(100,100,3)
                 layer=layer_details['layer'](**layer_details['params'])
             else:
-                model=check_flatten_need(model,layer,debug=debug)
                 layer=layer_details['layer'](**layer_details['params'])
-            
+                model=check_flatten_need(model,layer,debug=debug)
+
             try:            
                 model.add(layer)
             except ValueError:
@@ -211,7 +214,7 @@ def generate_individuals(pool_of_features,pool_of_features_probability,max_depth
         pool_individuals=np.random.choice(list(pool_of_features.keys()),size=(1000,max_depth),p=pool_of_features_probability)
         pool_individuals_valids=[]
         for ind in pool_individuals:   
-            pool_individuals_valids.append(architecture_feaseable(pool_of_features=pool_of_features,individual=ind))
+            pool_individuals_valids.append(architecture_feasiable(pool_of_features=pool_of_features,individual=ind))
 
         pool_individuals_valids=np.array(pool_individuals_valids)
         pool_individuals_valids=pool_individuals_valids[np.where(pool_individuals_valids.sum(axis=1)>0)[0]]
@@ -219,7 +222,7 @@ def generate_individuals(pool_of_features,pool_of_features_probability,max_depth
         with open(f'arquiteturas_validas_max_depth_{max_depth}.json','+w') as f:
             json.dump(pool_individuals_valids.tolist(),f)
 
-def get_random_layer()->tf.keras.layers:
+def get_random_layer(pool_of_features,pool_of_features_probability)->tf.keras.layers:
     """ selects one random layer from the pool of features"""
     layer_index=np.random.choice(list(pool_of_features.keys()),1,p=pool_of_features_probability)[0]
     layer_details=pool_of_features[layer_index]
@@ -231,7 +234,7 @@ def get_random_layer()->tf.keras.layers:
     
     return layer
 
-def check_dimension_compatibility(model:tf.keras.Sequential,layer:tf.keras.layers,debug=False) -> tf.keras.layers:
+def check_dimension_compatibility(model:tf.keras.Sequential,layer:tf.keras.layers,pool_of_features,pool_of_features_probability,debug=False) -> tf.keras.layers:
     """
     checks if it is feasible to add the intended layer 
     """
@@ -244,8 +247,8 @@ def check_dimension_compatibility(model:tf.keras.Sequential,layer:tf.keras.layer
         if debug:
             print('Dimension compatibility error')
 
-        layer=get_random_layer()
-        layer=check_dimension_compatibility(model,layer)
+        layer=get_random_layer(pool_of_features,pool_of_features_probability)
+        layer=check_dimension_compatibility(model,layer,pool_of_features,pool_of_features_probability)
 
     if debug:
         print('dimension outcome:',layer)
@@ -288,7 +291,7 @@ def check_flatten_need(model:tf.keras.Sequential,layer_to_be_add:tf.keras.layers
                     break
     return model
 
-def create_model(pool_of_features,individual,debug=False):
+def create_model(individual,pool_of_features,pool_of_features_probability,debug=False):
     """
     creates the model indicated by the individual. 
     """
@@ -303,11 +306,10 @@ def create_model(pool_of_features,individual,debug=False):
                 layer_details['params']['input_shape']=(100,100,3)
                 layer=layer_details['layer'](**layer_details['params'])
             else:
-                layer=layer_details['layer'](**layer_details['params'])
+                layer=layer_details['layer'](**layer_details['params'])                
+                layer=check_dimension_compatibility(model,layer,pool_of_features,pool_of_features_probability,debug=debug)
                 model=check_flatten_need(model,layer,debug=debug)
-                layer=layer_details['layer'](**layer_details['params'])
-                layer=check_dimension_compatibility(model,layer,debug=debug)
-            
+                
             model.add(layer)
             non_empty_layer+=1   
 
@@ -383,12 +385,20 @@ def save_logs(id):
     
     return new_filenames
     
-
+def feasiable_model(individual,pool_of_features=pool_of_features):
+    """
+    delta penalty decorator does not accept args and kwargs for feasible function. Then, global variable will be used as a workaround
+    """
+    result=architecture_feasiable(pool_of_features,individual)
+    if all(result==-1):
+        return False
+    else:
+        return True
 
 def main(id,max_depth,generations,population_size,start_gen,saving_generation,num_of_evaluations=1,max_epochs=20,verbose=0):
 
     @output_prints_decorator_factory(*default_filenames)
-    def evaluate(individual,trainning_dataset,validation_dataset,testing_dataset,pool_of_features,fn_no_linear=None,max_epochs=20,num_of_evaluations=1,verbose=0,display=False):
+    def evaluate(individual,trainning_dataset,validation_dataset,testing_dataset,pool_of_features,pool_of_features_probability,fn_no_linear=None,max_epochs=20,num_of_evaluations=1,verbose=0,display=False):
         if display:
             print('model {} is being trainned')
     
@@ -401,7 +411,7 @@ def main(id,max_depth,generations,population_size,start_gen,saving_generation,nu
             
             
             if seed==seeds[0]:
-                model_raw=create_model(pool_of_features,individual)
+                model_raw=create_model(individual,pool_of_features,pool_of_features_probability)
                 print('\n'*2)
                 print(f'individual: {individual}')
                 print(model_raw.summary())
@@ -477,11 +487,14 @@ def main(id,max_depth,generations,population_size,start_gen,saving_generation,nu
         toolbox.register("evaluate", evaluate,trainning_dataset=trainning_dataset.batch(10),
                                             validation_dataset=validation_dataset.batch(10),
                                             testing_dataset=testing_dataset.batch(32),
-                                            pool_of_features=pool_of_features,
                                             max_epochs=max_epochs,
                                             num_of_evaluations=num_of_evaluations,
                                             fn_no_linear=lambda x: x**3,
-                                            verbose=verbose)
+                                            verbose=verbose,
+                                            pool_of_features=pool_of_features,
+                                            pool_of_features_probability=pool_of_features_probability)
+        toolbox.decorate("evaluate", tools.DeltaPenalty(feasiable_model, 0))
+
 
         # Decorate the variation operators
         toolbox.decorate("mate", history.decorator)
@@ -549,11 +562,12 @@ def main(id,max_depth,generations,population_size,start_gen,saving_generation,nu
 
         with open(f'id_{id}_logbook.txt','+a') as f:
             json.dump(log,f)
-        # graph = networkx.DiGraph(history.genealogy_tree)
-        # graph = graph.reverse()     # Make the graph top-down
-        # colors = [toolbox.evaluate(history.genealogy_history[i])[0] for i in graph]
-        # networkx.draw(graph, node_color=colors)
-        # plt.savefig(f'id_{id}_genealogy_tree.png')
+        if start_gen==0:
+            graph = networkx.DiGraph(history.genealogy_tree)
+            graph = graph.reverse()     # Make the graph top-down
+            colors = [toolbox.evaluate(history.genealogy_history[i])[0] for i in graph]
+            networkx.draw(graph, node_color=colors)
+            plt.savefig(f'id_{id}_genealogy_tree.png')
 
         # files=[f'id_{id}_individuals_generation.txt',f'arquiteturas_validas_max_depth_{max_depth}.json']#,f'id_{id}_genealogy_tree.png']
         files=[f'arquiteturas_validas_max_depth_{max_depth}.json',f'id_{id}_individuals_generation.txt',f'id_{id}_logbook.txt']
