@@ -218,7 +218,7 @@ def generate_individuals(pool_size,pool_of_features,pool_of_features_probability
                 new_pool_individuals.append(architecture_feasiable(pool_of_features=pool_of_features,individual=ind))
 
             new_pool_individuals=np.array(new_pool_individuals)
-            new_pool_individuals_valids=pool_individuals_valids[np.where(new_pool_individuals.sum(axis=1)>0)[0]]
+            new_pool_individuals_valids=new_pool_individuals[np.where(new_pool_individuals.sum(axis=1)>0)[0]]
             pool_individuals_valids.append(new_pool_individuals_valids)
 
         with open(f'arquiteturas_validas_max_depth_{max_depth}.json','+w') as f:
