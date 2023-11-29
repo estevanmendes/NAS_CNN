@@ -390,7 +390,7 @@ def feasiable_model(individual):
     delta penalty decorator does not accept args and kwargs for feasible function. Then, global variable will be used as a workaround
     """
     result=architecture_feasiable(pool_of_features,individual)
-    if all(result==-1):
+    if -1 in result:
         return False
     else:
         return True
