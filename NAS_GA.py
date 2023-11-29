@@ -209,14 +209,17 @@ def architecture_feasiable(pool_of_features,individual,debug=False):
         
     return individual
 
-def generate_individuals(pool_of_features,pool_of_features_probability,max_depth):
-        pool_individuals=np.random.choice(list(pool_of_features.keys()),size=(1000,max_depth),p=pool_of_features_probability)
+def generate_individuals(pool_size,pool_of_features,pool_of_features_probability,max_depth):
         pool_individuals_valids=[]
-        for ind in pool_individuals:   
-            pool_individuals_valids.append(architecture_feasiable(pool_of_features=pool_of_features,individual=ind))
+        while len(pool_individuals_valids)<pool_size:
+            pool_individuals=np.random.choice(list(pool_of_features.keys()),size=(10,max_depth),p=pool_of_features_probability)
+            new_pool_individuals=[]
+            for ind in pool_individuals:
+                new_pool_individuals.append(architecture_feasiable(pool_of_features=pool_of_features,individual=ind))
 
-        pool_individuals_valids=np.array(pool_individuals_valids)
-        pool_individuals_valids=pool_individuals_valids[np.where(pool_individuals_valids.sum(axis=1)>0)[0]]
+            new_pool_individuals=np.array(new_pool_individuals)
+            new_pool_individuals_valids=pool_individuals_valids[np.where(pool_individuals_valids.sum(axis=1)>0)[0]]
+            pool_individuals_valids.append(new_pool_individuals_valids)
 
         with open(f'arquiteturas_validas_max_depth_{max_depth}.json','+w') as f:
             json.dump(pool_individuals_valids.tolist(),f)
@@ -411,10 +414,10 @@ def main(id,max_depth,generations,population_size,start_gen,saving_generation,nu
     trainning_dataset,validation_dataset,testing_dataset=load_datasets()
     pool_of_features,pool_of_features_probability=individuals(max_depth=max_depth)
 
-
-    if not os.path.isfile(f'arquiteturas_validas_max_depth_{max_depth}.json'): 
+    pool_size=100
+    if not os.path.isfile(f'arquiteturas_validas_max_depth_{max_depth}_size{pool_size}.json'): 
         print('Pool of valid archtectures about to be created')
-        generate_individuals(pool_of_features,pool_of_features_probability,max_depth=max_depth)
+        generate_individuals(pool_size,pool_of_features,pool_of_features_probability,max_depth=max_depth)
         
 
 
