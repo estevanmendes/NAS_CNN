@@ -19,13 +19,13 @@ def _simple_algorithm_checkpoint(start_gen,logbook,toolbox,cxpb,mutpb,freq,ngen,
 
             population = toolbox.select(population, k=len(population))
 
-            if (gen +1) % freq == 0:
+            # if (gen +1) % freq == 0:
                 # Fill the dictionary using the dict(key=value[, ...]) constructor
-                cp = dict(population=population, generation=gen, halloffame=halloffame,
-                        logbook=logbook, rndstate=random.getstate(),genealogy_history=history.genealogy_history)
+            cp = dict(population=population, generation=gen, halloffame=halloffame,
+                    logbook=logbook, rndstate=random.getstate(),genealogy_history=history.genealogy_history)
 
-                with open(f"start_gen_0_to_gen_{gen}_checkpoint_name.pkl", "wb") as cp_file:
-                    pickle.dump(cp, cp_file)
+            with open(f"start_gen_0_to_gen_{gen}_checkpoint_name.pkl", "wb") as cp_file:
+                pickle.dump(cp, cp_file)
         
 
     return population,logbook,halloffame,history.genealogy_history
