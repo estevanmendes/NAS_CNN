@@ -201,14 +201,12 @@ def architecture_feasiable(pool_of_features,individual,debug=False):
 
             try:            
                 model.add(layer)
-            except ValueError:
+            except:
                 model=None
-                break
+                return [-1]*len(individual)
 
-    if model is None:
-        return [-1]*len(individual)
-    else:
-        return individual
+        
+    return individual
 
 def generate_individuals(pool_of_features,pool_of_features_probability,max_depth):
         pool_individuals=np.random.choice(list(pool_of_features.keys()),size=(1000,max_depth),p=pool_of_features_probability)
@@ -389,7 +387,7 @@ def feasiable_model(individual):
     """
     delta penalty decorator does not accept args and kwargs for feasible function. Then, global variable will be used as a workaround
     """
-    result=architecture_feasiable(pool_of_features,individual)
+    result=architecture_feasiable(pool_of_features=pool_of_features,individual=individual)
     if -1 in result:
         return False
     else:
