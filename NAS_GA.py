@@ -221,7 +221,7 @@ def generate_individuals(pool_size,pool_of_features,pool_of_features_probability
             new_pool_individuals_valids=new_pool_individuals[np.where(new_pool_individuals.sum(axis=1)>0)[0]]
             pool_individuals_valids.append(new_pool_individuals_valids)
 
-        with open(f'arquiteturas_validas_max_depth_{max_depth}.json','+w') as f:
+        with open(f'arquiteturas_validas_max_depth_{max_depth}_size{pool_size}.json','+w') as f:
             json.dump(pool_individuals_valids,f)
 
 def get_random_layer(pool_of_features,pool_of_features_probability)->tf.keras.layers:
