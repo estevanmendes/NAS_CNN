@@ -1,8 +1,10 @@
 import tensorflow as tf
 import numpy as np
 from NAS import pool_of_features, pool_of_features_probability
-from Models import architecture_feasiable
+from NAS.Models import architecture_feasiable
 import json
+
+
 # def individuals(max_depth=15):
 #     pool_of_features={1:{'layer':tf.keras.layers.Conv2D,
 #                         'params':{'filters':64,'kernel_size':5,'strides':1,'padding':'valid','activation':'relu'}},
