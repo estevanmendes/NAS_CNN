@@ -3,6 +3,7 @@ import numpy as np
 from NAS.Utils import output_prints_decorator_factory
 from NAS.__init__ import default_filenames
 import datetime
+import json
 
 def get_random_layer(pool_of_features,pool_of_features_probability)->tf.keras.layers:
     """ selects one random layer from the pool of features"""
