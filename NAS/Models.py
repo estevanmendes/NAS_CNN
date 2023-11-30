@@ -12,7 +12,7 @@ def get_random_layer(pool_of_features,pool_of_features_probability)->tf.keras.la
     if layer_details['layer'] is not None:
         layer=layer_details['layer'](**layer_details['params'])
     else:
-        layer=get_random_layer()
+        layer=get_random_layer(pool_of_features,pool_of_features_probability)
     
     return layer
 
