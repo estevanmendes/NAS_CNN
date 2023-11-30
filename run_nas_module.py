@@ -128,11 +128,12 @@ def main(id,max_depth,generations,population_size,start_gen,saving_generation,nu
 
     if gen==saving_generation:
         print('melhor:',hof[0])
-        print(create_model(pool_of_features,hof[0],).summary())
+        print(create_model(hof[0],pool_of_features,pool_of_features_probability).summary())
         print(evaluate(hof[0],trainning_dataset=trainning_dataset.batch(10),
                                             validation_dataset=validation_dataset.batch(10),
                                             testing_dataset=testing_dataset.batch(32),
                                             pool_of_features=pool_of_features,
+                                            pool_of_features_probability=pool_of_features_probability,
                                             num_of_evaluations=5,
                                             ))
         
@@ -142,6 +143,7 @@ def main(id,max_depth,generations,population_size,start_gen,saving_generation,nu
 
         with open(f'id_{id}_logbook.txt','+a') as f:
             json.dump(log,f)
+
         if start_gen==0:
             graph = networkx.DiGraph(history.genealogy_tree)
             graph = graph.reverse()     # Make the graph top-down
@@ -150,7 +152,7 @@ def main(id,max_depth,generations,population_size,start_gen,saving_generation,nu
             plt.savefig(f'id_{id}_genealogy_tree.png')
 
         # files=[f'id_{id}_individuals_generation.txt',f'arquiteturas_validas_max_depth_{max_depth}.json']#,f'id_{id}_genealogy_tree.png']
-        files=[f'arquiteturas_validas_max_depth_{max_depth}.json',f'id_{id}_individuals_generation.txt',f'id_{id}_logbook.txt']
+        files=[f'arquiteturas_validas_max_depth_{max_depth}_size_{pool_size}.json',f'id_{id}_individuals_generation.txt',f'id_{id}_logbook.txt']
         filename_logs=save_logs(id)
         files.extend(filename_logs)
         send_results_2_aws(files)
@@ -189,7 +191,7 @@ if __name__=="__main__":
         
     saving_generation=30
     testing=False
-    id_user='teste_003_'
+    id_user='teste_004_'
     global id
     id=id_user#+str(datetime.datetime.now())
     max_depth=15
@@ -202,7 +204,7 @@ if __name__=="__main__":
     description=f"""
                 {start_gen} geração
                 experimento de GA
-                30 gerações, 50 individuos,3 avaliacoes,15 profundidade maxima,20 maximo epocas
+                {start_gen}-{end_gen} gerações, {population_size} individuos,{num_of_evaluations} avaliacoes,{max_depth} profundidade maxima,{max_epochs} maximo epocas
                 metrica objetivo: AUC                   
                     
                 """
