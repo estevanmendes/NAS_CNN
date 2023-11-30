@@ -191,7 +191,7 @@ if __name__=="__main__":
         
     saving_generation=30
     testing=False
-    id_user='teste_004_'
+    id_user='teste_005'
     global id
     id=id_user#+str(datetime.datetime.now())
     max_depth=15

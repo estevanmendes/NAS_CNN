@@ -62,7 +62,7 @@ def create_model(individual,pool_of_features,pool_of_features_probability,debug=
                 model=check_dimension_compatibility(model,layer,pool_of_features,pool_of_features_probability,debug=debug)                
 
             
-    layer=tf.keras.layers.Dense(1,activation='softmax')
+    layer=tf.keras.layers.Dense(1,activation='sigmoid')
     model=check_flatten_need(model,layer)
     model.add(layer)
     if debug:
