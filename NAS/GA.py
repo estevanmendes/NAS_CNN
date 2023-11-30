@@ -46,7 +46,7 @@ def evaluate(individual,trainning_dataset,validation_dataset,testing_dataset,poo
             
             
             if seed==seeds[0]:
-                model_raw=create_model(individual,pool_of_features,pool_of_features_probability,debug=True)
+                model_raw=create_model(individual,pool_of_features,pool_of_features_probability,debug=False)
                 print('\n'*2)
                 print(f'individual: {individual}')
                 print(model_raw.summary())

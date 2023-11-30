@@ -11,10 +11,13 @@ def load_datasets():
             tensor = tf.cast(tensor, tf.float32) / 255.0
             return tensor
 
-        def __init__(self,df,path_column,label_column) -> None:
+        def __init__(self,df,path_column,label_column,embed=False) -> None:
             self.paths=df[path_column].values
-            self.labels=np.eye(2)[df[label_column].values]
-
+            if embed:
+                self.labels=np.eye(2)[df[label_column].values]
+            else:
+                self.labels=df[label_column].values
+                
         def create_dataset(self):
             dataset = tf.data.Dataset.from_tensor_slices((self.paths,self.labels))
             dataset = dataset.map(lambda filepath, label: (self.load_image(filepath), label))

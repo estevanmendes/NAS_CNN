@@ -61,7 +61,7 @@ def create_model(individual,pool_of_features,pool_of_features_probability,debug=
                 model=check_dimension_compatibility(model,layer,pool_of_features,pool_of_features_probability,debug=debug)                
 
             
-    layer=tf.keras.layers.Dense(2,activation='softmax')
+    layer=tf.keras.layers.Dense(1,activation='softmax')
     model=check_flatten_need(model,layer)
     model.add(layer)
     if debug:
@@ -121,7 +121,10 @@ def check_flatten_need(model:tf.keras.Sequential,layer_to_be_add:tf.keras.layers
                 elif ('conv' in previus_layer.__doc__.lower()[:30] or 'pool' in previus_layer.__doc__.lower()[:30]):
                     model.add(tf.keras.layers.Flatten())
                     return model
-    
+    else:
+        if 'dense' in layer_to_be_add.__doc__.lower()[:30]:
+            model.add(tf.keras.layers.Flatten())
+
     return model
 
 
@@ -141,6 +144,7 @@ def architecture_feasiable(pool_of_features,individual,debug=False):
             if non_empty_layer==0:
                 layer_details['params']['input_shape']=(100,100,3)
                 layer=layer_details['layer'](**layer_details['params'])
+                model=check_flatten_need(model,layer,debug=debug)
             else:
                 layer=layer_details['layer'](**layer_details['params'])
                 model=check_flatten_need(model,layer,debug=debug)
