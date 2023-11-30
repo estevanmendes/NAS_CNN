@@ -15,7 +15,7 @@ from NAS.dataset import *
 from NAS.GA import *
 from NAS.Models import *
 from NAS.Pool import *
-
+import json
 
 import aws
 from NAS import default_filenames,pool_of_features,pool_of_features_probability
