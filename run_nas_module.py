@@ -103,18 +103,19 @@ def main(id,max_depth,generations,population_size,start_gen,saving_generation,nu
                 checkpoint=f'start_gen_0_to_gen_{gen-1}_checkpoint_name.pkl'
             else:
                 checkpoint=None
-
             pop, log,hof,genealogy_history = simple_algorithm_checkpoint(population=population,
                                                     toolbox=toolbox,
                                                     cxpb=0.5,
                                                     mutpb=linear_mutation_prob[gen],
-                                                    ngen=generations,
+                                                    ngen=gen+1,
                                                     stats=stats,
                                                     halloffame=hof,
                                                     verbose=True,
                                                     freq=1,
                                                     checkpoint=checkpoint,
                                                     history=history)
+            if gen==saving_generation:
+                break
     else:
         gen=start_gen
         checkpoint=f'start_gen_0_to_gen_{gen-1}_checkpoint_name.pkl'
@@ -191,10 +192,10 @@ if __name__=="__main__":
         
     saving_generation=30
     testing=False
-    id_user='teste_006'
+    id_user='teste_007'
     global id
     id=id_user#+str(datetime.datetime.now())
-    max_depth=15
+    max_depth=20
     generations=end_gen
     population_size=50
     num_of_evaluations=3
@@ -202,6 +203,7 @@ if __name__=="__main__":
 
     sys.stdout = open(default_filenames[-1], '+a')
     description=f"""
+                Adam optimizer and linear increase mut prob
                 15 layers - only convolutional, pooling, dropout,None,batchnormalization layers
                 {start_gen} geração
                 experimento de GA
