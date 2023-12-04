@@ -1,7 +1,7 @@
 import tensorflow as tf
 import numpy as np
 from NAS.Utils import output_prints_decorator_factory
-from NAS.__init__ import default_filenames
+from NAS.__init__ import default_filenames,img_shape
 import datetime
 import json
 
@@ -60,10 +60,15 @@ def create_model(individual,pool_of_features,pool_of_features_probability,debug=
             else:
                 layer=layer_details['layer'](**layer_details['params'])     
                 model=check_dimension_compatibility(model,layer,pool_of_features,pool_of_features_probability,debug=debug)                
-
-            
-    layer=tf.keras.layers.Dense(1,activation='sigmoid')
+    
+    layer=tf.keras.layers.Dense(50,activation='relu')
     model=check_flatten_need(model,layer)
+    model.add(layer)
+    layer=tf.keras.layers.Dense(20,activation='relu')
+    model.add(layer)
+    layer=tf.keras.layers.Dense(20,activation='relu')
+    model.add(layer)
+    layer=tf.keras.layers.Dense(1,activation='sigmoid')
     model.add(layer)
     if debug:
             print('model stack:',*model.layers,sep='\n')
@@ -122,9 +127,9 @@ def check_flatten_need(model:tf.keras.Sequential,layer_to_be_add:tf.keras.layers
                 elif ('conv' in previus_layer.__doc__.lower()[:30] or 'pool' in previus_layer.__doc__.lower()[:30]):
                     model.add(tf.keras.layers.Flatten())
                     return model
-    else:
-        if 'dense' in layer_to_be_add.__doc__.lower()[:30]:
-            model.add(tf.keras.layers.Flatten())
+    # else:
+    #     if 'dense' in layer_to_be_add.__doc__.lower()[:30]:
+    #         model.add(tf.keras.layers.Flatten(input_shape=img_shape))
 
     return model
 
@@ -143,9 +148,12 @@ def architecture_feasiable(pool_of_features,individual,debug=False):
         if layer_details['layer'] is not None:
             
             if non_empty_layer==0:
-                layer_details['params']['input_shape']=(100,100,3)
+                layer_details['params']['input_shape']=img_shape
                 layer=layer_details['layer'](**layer_details['params'])
-                model=check_flatten_need(model,layer,debug=debug)
+                # model=check_flatten_need(model,layer,debug=debug)
+                # if len(model.layers)>0:
+                #     del layer_details['params']['input_shape']
+                #     layer=layer_details['layer'](**layer_details['params'])
             else:
                 layer=layer_details['layer'](**layer_details['params'])
                 model=check_flatten_need(model,layer,debug=debug)
@@ -165,7 +173,7 @@ def architecture_feasiable(pool_of_features,individual,debug=False):
 def generate_individuals(pool_size,pool_of_features,pool_of_features_probability,max_depth):
         pool_individuals_valids=[]
         while len(pool_individuals_valids)<pool_size:
-            pool_individuals=np.random.choice(list(pool_of_features.keys()),size=(10,max_depth),p=pool_of_features_probability)
+            pool_individuals=np.random.choice(list(pool_of_features.keys()),size=(10,max_depth),p=pool_of_features_probability,replace=True)
             new_pool_individuals=[]
             for ind in pool_individuals:
                 new_pool_individuals.append(architecture_feasiable(pool_of_features=pool_of_features,individual=ind))
