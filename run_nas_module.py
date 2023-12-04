@@ -29,7 +29,7 @@ def main(id,max_depth,generations,population_size,start_gen,saving_generation,nu
 
     # trainning_dataset,validation_dataset,testing_dataset=load_datasets()
 
-    pool_size=300
+    pool_size=500
     if not os.path.isfile(f'arquiteturas_validas_max_depth_{max_depth}_size_{pool_size}.json'): 
         print('Pool of valid archtectures about to be created')
         generate_individuals(pool_size,pool_of_features,pool_of_features_probability,max_depth=max_depth)

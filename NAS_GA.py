@@ -305,8 +305,8 @@ default_filenames=['detalhes_arquiteturas_testadas.txt','experimento_log.txt']
 #     return model
 
 # def evaluate_model(testing_dataset,model:tf.keras.Sequential,verbose=0)->float:
-    _,metric=model.evaluate(testing_dataset,verbose=verbose)
-    return metric
+    # _,metric=model.evaluate(testing_dataset,verbose=verbose)
+    # return metric
 
 # def choice(a,p):
 #     return np.random.choice(a=a,size=1,p=p)[0]
@@ -353,15 +353,15 @@ default_filenames=['detalhes_arquiteturas_testadas.txt','experimento_log.txt']
     
 #     return new_filenames
     
-def feasiable_model(individual):
-    """
-    delta penalty decorator does not accept args and kwargs for feasible function. Then, global variable will be used as a workaround
-    """
-    result=architecture_feasiable(pool_of_features=pool_of_features,individual=individual)
-    if -1 in result:
-        return False
-    else:
-        return True
+# def feasiable_model(individual):
+#     """
+#     delta penalty decorator does not accept args and kwargs for feasible function. Then, global variable will be used as a workaround
+#     """
+#     result=architecture_feasiable(pool_of_features=pool_of_features,individual=individual)
+#     if -1 in result:
+#         return False
+#     else:
+#         return True
 
 def main(id,max_depth,generations,population_size,start_gen,saving_generation,num_of_evaluations=1,max_epochs=20,verbose=0):
 
