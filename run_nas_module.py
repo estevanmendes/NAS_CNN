@@ -27,7 +27,7 @@ def main(id,max_depth,generations,population_size,start_gen,saving_generation,nu
     # global pool_of_features_probability
     # pool_of_features,pool_of_features_probability=individuals(max_depth=max_depth)
 
-    trainning_dataset,validation_dataset,testing_dataset=load_datasets()
+    # trainning_dataset,validation_dataset,testing_dataset=load_datasets()
 
     pool_size=300
     if not os.path.isfile(f'arquiteturas_validas_max_depth_{max_depth}_size_{pool_size}.json'): 
@@ -191,7 +191,7 @@ if __name__=="__main__":
         
     saving_generation=30
     testing=False
-    id_user='teste_005'
+    id_user='teste_006'
     global id
     id=id_user#+str(datetime.datetime.now())
     max_depth=15
@@ -202,6 +202,7 @@ if __name__=="__main__":
 
     sys.stdout = open(default_filenames[-1], '+a')
     description=f"""
+                15 layers - only convolutional, pooling, dropout,None,batchnormalization layers
                 {start_gen} geração
                 experimento de GA
                 {start_gen}-{end_gen} gerações, {population_size} individuos,{num_of_evaluations} avaliacoes,{max_depth} profundidade maxima,{max_epochs} maximo epocas
