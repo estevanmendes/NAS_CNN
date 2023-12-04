@@ -86,7 +86,7 @@ def main(id,max_depth,generations,population_size,start_gen,saving_generation,nu
         history.update(population)
 
 
-        hof = tools.HallOfFame(1)  # salva o melhor individuo que já existiu na pop durante a evolução
+        hof = tools.HallOfFame(2)  # salva o melhor individuo que já existiu na pop durante a evolução
 
         # Gerar as estatísticas
         stats = tools.Statistics(lambda ind:ind.fitness.values)
@@ -96,8 +96,8 @@ def main(id,max_depth,generations,population_size,start_gen,saving_generation,nu
         stats.register('max', np.max)
 
 
-  
-
+        linear_mutation_prob=np.linspace(0.01,0.4,saving_generation)
+        
         for gen in range(start_gen,generations+1):
             if gen!=0:
                 checkpoint=f'start_gen_0_to_gen_{gen-1}_checkpoint_name.pkl'
@@ -107,7 +107,7 @@ def main(id,max_depth,generations,population_size,start_gen,saving_generation,nu
             pop, log,hof,genealogy_history = simple_algorithm_checkpoint(population=population,
                                                     toolbox=toolbox,
                                                     cxpb=0.5,
-                                                    mutpb=0.01,
+                                                    mutpb=linear_mutation_prob[gen],
                                                     ngen=generations,
                                                     stats=stats,
                                                     halloffame=hof,
