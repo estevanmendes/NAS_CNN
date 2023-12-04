@@ -195,7 +195,7 @@ if __name__=="__main__":
     id_user='teste_007'
     global id
     id=id_user#+str(datetime.datetime.now())
-    max_depth=20
+    max_depth=25
     generations=end_gen
     population_size=50
     num_of_evaluations=3
