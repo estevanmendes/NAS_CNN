@@ -62,7 +62,7 @@ def main(id,max_depth,generations,population_size,start_gen,saving_generation,nu
         toolbox.register("population_guess", initPopulation, list, toolbox.individual_guess, filename=f'arquiteturas_validas_max_depth_{max_depth}_size_{pool_size}.json',trial_name=id)
 
         toolbox.register("mate", tools.cxOnePoint)
-        toolbox.register("mutate", tools.mutUniformInt,low=0,up=len(pool_of_features), indpb=0.1)
+        toolbox.register("mutate", tools.mutUniformInt,low=1,up=len(pool_of_features), indpb=0.1)
         toolbox.register("select", tools.selTournament, tournsize=3)
         toolbox.register("evaluate", evaluate,trainning_dataset=trainning_dataset.batch(10),
                                             validation_dataset=validation_dataset.batch(10),
