@@ -74,7 +74,7 @@ def create_model(individual,pool_of_features,pool_of_features_probability,debug=
             print('model stack:',*model.layers,sep='\n')
 
     learning_rate=tf.optimizers.schedules.ExponentialDecay(initial_learning_rate=.1,decay_steps=10000.,decay_rate=0.95)
-    opt=tf.optimizers.Adam(learning_rate=learning_rate)
+    opt=tf.optimizers.SGD(learning_rate=learning_rate)
     model.compile(optimizer=opt, loss=tf.metrics.mse,metrics=tf.metrics.AUC(name='auc'))
     
     return model
