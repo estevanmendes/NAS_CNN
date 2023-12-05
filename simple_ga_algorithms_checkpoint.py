@@ -72,7 +72,6 @@ def simple_algorithm_checkpoint(toolbox,cxpb,mutpb,freq,start_gen,ngen,stats,his
                                                         cxpb=cxpb,
                                                         mutpb=mutpb,
                                                         freq=freq,
-                                                        start_gen=start_gen,
                                                         ngen=ngen,
                                                         stats=stats,
                                                         population=population,
