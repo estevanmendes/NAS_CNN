@@ -39,9 +39,9 @@ def simple_algorithm_checkpoint(toolbox,cxpb,mutpb,freq,start_gen,ngen,stats,his
         with open(checkpoint, "rb") as cp_file:
             cp = pickle.load(cp_file)
         starting_population = cp["population"]
-        if start_gen != cp["generation"]:
+        if start_gen-1 != cp["generation"]:
             raise ValueError( cp["generation"])
-        start_gen =cp["generation"]
+        
         halloffame = cp["halloffame"]
         logbook = cp["logbook"]
         starting_genealogy_history = cp["genealogy_history"]
