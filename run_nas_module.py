@@ -195,14 +195,14 @@ if __name__=="__main__":
         
     saving_generation=30
     testing=False
-    id_user='debug'#'teste_007'
+    id_user='teste_007'
     global id
     id=id_user#+str(datetime.datetime.now())
     max_depth=25
     generations=end_gen
-    population_size=3
-    num_of_evaluations=2
-    max_epochs=1
+    population_size=50
+    num_of_evaluations=3
+    max_epochs=20
 
     sys.stdout = open(default_filenames[-1], '+a')
     description=f"""
