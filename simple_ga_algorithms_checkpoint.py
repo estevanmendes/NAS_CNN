@@ -33,13 +33,15 @@ def _simple_algorithm_checkpoint(start_gen,logbook,toolbox,cxpb,mutpb,freq,ngen,
 
 
 
-def simple_algorithm_checkpoint(toolbox,cxpb,mutpb,freq,ngen,stats,history,population=None,halloffame=None,checkpoint=None,verbose=False):
+def simple_algorithm_checkpoint(toolbox,cxpb,mutpb,freq,start_gen,ngen,stats,history,population=None,halloffame=None,checkpoint=None,verbose=False):
     if checkpoint:
         # A file name has been given, then load the data from the file
         with open(checkpoint, "rb") as cp_file:
             cp = pickle.load(cp_file)
         starting_population = cp["population"]
-        start_gen = cp["generation"]
+        if start_gen != cp["generation"]:
+            raise ValueError
+        start_gen =cp["generation"]
         halloffame = cp["halloffame"]
         logbook = cp["logbook"]
         starting_genealogy_history = cp["genealogy_history"]
@@ -63,7 +65,6 @@ def simple_algorithm_checkpoint(toolbox,cxpb,mutpb,freq,ngen,stats,history,popul
         starting_population.extend(genealogy_history)
         genealogy_history=starting_genealogy_history
     else:
-        start_gen = 0
         logbook = tools.Logbook()
         population,logbook,halloffame,genealogy_history=_simple_algorithm_checkpoint(start_gen=start_gen,
                                                         logbook=logbook,
@@ -71,6 +72,7 @@ def simple_algorithm_checkpoint(toolbox,cxpb,mutpb,freq,ngen,stats,history,popul
                                                         cxpb=cxpb,
                                                         mutpb=mutpb,
                                                         freq=freq,
+                                                        start_gen=start_gen,
                                                         ngen=ngen,
                                                         stats=stats,
                                                         population=population,
