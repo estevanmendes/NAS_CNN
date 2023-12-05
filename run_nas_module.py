@@ -99,7 +99,10 @@ def main(id,max_depth,generations,population_size,start_gen,saving_generation,nu
         linear_mutation_prob=np.linspace(0.01,0.4,saving_generation)
         
         for gen in range(start_gen,generations+1):
-            if gen!=0:
+            if gen==saving_generation:
+                break
+
+            elif gen!=0:
                 checkpoint=f'start_gen_0_to_gen_{gen-1}_checkpoint_name.pkl'
             else:
                 checkpoint=None
@@ -115,8 +118,7 @@ def main(id,max_depth,generations,population_size,start_gen,saving_generation,nu
                                                     freq=1,
                                                     checkpoint=checkpoint,
                                                     history=history)
-            if gen==saving_generation:
-                break
+
     else:
         gen=start_gen
         checkpoint=f'start_gen_0_to_gen_{gen-1}_checkpoint_name.pkl'
@@ -199,7 +201,7 @@ if __name__=="__main__":
     max_depth=25
     generations=end_gen
     population_size=3
-    num_of_evaluations=1
+    num_of_evaluations=2
     max_epochs=1
 
     sys.stdout = open(default_filenames[-1], '+a')
