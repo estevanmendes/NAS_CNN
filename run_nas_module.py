@@ -195,10 +195,10 @@ if __name__=="__main__":
         
     saving_generation=30
     testing=False
-    id_user='teste_007'
+    id_user='teste_008'
     global id
     id=id_user#+str(datetime.datetime.now())
-    max_depth=25
+    max_depth=15
     generations=end_gen
     population_size=50
     num_of_evaluations=3
@@ -206,7 +206,7 @@ if __name__=="__main__":
 
     sys.stdout = open(default_filenames[-1], '+a')
     description=f"""
-                Adam optimizer and linear increase mut prob
+                Mundaça linear da probabilidade de mutação de 0.01 até 0.3
                 15 layers - only convolutional, pooling, dropout,None,batchnormalization layers
                 {start_gen} geração
                 experimento de GA
