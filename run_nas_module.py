@@ -157,6 +157,7 @@ def main(id,max_depth,generations,population_size,start_gen,saving_generation,nu
         #     plt.savefig(f'id_{id}_genealogy_tree.png')
 
         # files=[f'id_{id}_individuals_generation.txt',f'arquiteturas_validas_max_depth_{max_depth}.json']#,f'id_{id}_genealogy_tree.png']
+        
         files=[f'arquiteturas_validas_max_depth_{max_depth}_size_{pool_size}.json',f'id_{id}_individuals_generation.txt',f'id_{id}_logbook.txt']
         filename_logs=save_logs(id)
         files.extend(filename_logs)
