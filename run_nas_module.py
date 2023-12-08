@@ -106,6 +106,7 @@ def main(id,max_depth,generations,population_size,start_gen,saving_generation,nu
                 checkpoint=f'start_gen_0_to_gen_{gen-1}_checkpoint_name.pkl'
             else:
                 checkpoint=None
+
             pop, log,hof,genealogy_history = simple_algorithm_checkpoint(population=population,
                                                     toolbox=toolbox,
                                                     cxpb=0.5,
@@ -148,12 +149,12 @@ def main(id,max_depth,generations,population_size,start_gen,saving_generation,nu
         with open(f'id_{id}_logbook.txt','+a') as f:
             json.dump(log,f)
 
-        if start_gen==0:
-            graph = networkx.DiGraph(history.genealogy_tree)
-            graph = graph.reverse()     # Make the graph top-down
-            colors = [toolbox.evaluate(history.genealogy_history[i])[0] for i in graph]
-            networkx.draw(graph, node_color=colors)
-            plt.savefig(f'id_{id}_genealogy_tree.png')
+        # if start_gen==0:
+        #     graph = networkx.DiGraph(history.genealogy_tree)
+        #     graph = graph.reverse()     # Make the graph top-down
+        #     colors = [toolbox.evaluate(history.genealogy_history[i])[0] for i in graph]
+        #     networkx.draw(graph, node_color=colors)
+        #     plt.savefig(f'id_{id}_genealogy_tree.png')
 
         # files=[f'id_{id}_individuals_generation.txt',f'arquiteturas_validas_max_depth_{max_depth}.json']#,f'id_{id}_genealogy_tree.png']
         files=[f'arquiteturas_validas_max_depth_{max_depth}_size_{pool_size}.json',f'id_{id}_individuals_generation.txt',f'id_{id}_logbook.txt']
