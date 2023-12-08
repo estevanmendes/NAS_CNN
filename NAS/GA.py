@@ -37,7 +37,7 @@ def evaluate(individual,trainning_dataset,validation_dataset,testing_dataset,poo
         if display:
             print('model {} is being trainned')
     
-        seeds=[1234,345,121,132,234]
+        seeds=[1234,345,121,132,234,45321,23123,2132]
         metrics=[]
         for seed in seeds[:num_of_evaluations]:
             np.random.seed(seed)
