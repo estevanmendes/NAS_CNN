@@ -74,7 +74,7 @@ def check_flatten_need(model:tf.keras.Sequential,layer_to_be_add:tf.keras.layers
             if 'dense' in layer_to_be_add.__doc__.lower()[:30]:
                 for previus_layer in np.flip(layers):
                     if 'flat' in previus_layer.__doc__.lower()[:30] :
-                        break
+                        return model
                     elif ('conv' in previus_layer.__doc__.lower()[:30] or 'pool' in previus_layer.__doc__.lower()[:30]):
                         model.add(tf.keras.layers.Flatten())
                         return model
@@ -83,12 +83,12 @@ def check_flatten_need(model:tf.keras.Sequential,layer_to_be_add:tf.keras.layers
             if 'dense' in layer_to_be_add.__doc__.lower()[:30]:
                 for previus_layer in np.flip(layers):
                     if 'flat' in previus_layer.__doc__.lower()[:30] :
-                        break
-                    else:
-                        model.add(tf.keras.layers.Flatten())
                         return model
 
-    return model
+                model.add(tf.keras.layers.Flatten())
+                return model
+
+    
 
 
 def check_dimension_compatibility(model:tf.keras.Sequential,layer:tf.keras.layers,pool_of_features,pool_of_features_probability,debug=False) -> tf.keras.layers:
