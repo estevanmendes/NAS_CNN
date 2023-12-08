@@ -33,7 +33,7 @@ def create_model(individual,pool_of_features,pool_of_features_probability,debug=
     else:
         layer=tf.keras.layers.Dense(1,activation='sigmoid')
 
-    model=check_flatten_need(model,layer)
+    model=check_flatten_need(model,layer,last_layer=True)
     model.add(layer)
     
     if debug:
@@ -59,7 +59,7 @@ def evaluate_model(testing_dataset,model:tf.keras.Sequential,verbose=0)->float:
     _,metric=model.evaluate(testing_dataset,verbose=verbose)
     return metric
 
-def check_flatten_need(model:tf.keras.Sequential,layer_to_be_add:tf.keras.layers,debug=False)->tf.keras.Sequential:
+def check_flatten_need(model:tf.keras.Sequential,layer_to_be_add:tf.keras.layers,debug=False,last_layer=False)->tf.keras.Sequential:
     
     """
         Checks if it is required to add a flatten layern, in order of connect dense layers into Convolutional and Maxpooling layers.
@@ -69,14 +69,24 @@ def check_flatten_need(model:tf.keras.Sequential,layer_to_be_add:tf.keras.layers
     if debug:
         print('layer to add :',layer_to_be_add)
     layers=model.layers
-    if len(layers)>0:
-        if 'dense' in layer_to_be_add.__doc__.lower()[:30]:
-            for previus_layer in np.flip(layers):
-                if 'flat' in previus_layer.__doc__.lower()[:30] :
-                    break
-                elif ('conv' in previus_layer.__doc__.lower()[:30] or 'pool' in previus_layer.__doc__.lower()[:30]):
-                    model.add(tf.keras.layers.Flatten())
-                    return model
+    if last_layer:
+        if len(layers)>0:
+            if 'dense' in layer_to_be_add.__doc__.lower()[:30]:
+                for previus_layer in np.flip(layers):
+                    if 'flat' in previus_layer.__doc__.lower()[:30] :
+                        break
+                    elif ('conv' in previus_layer.__doc__.lower()[:30] or 'pool' in previus_layer.__doc__.lower()[:30]):
+                        model.add(tf.keras.layers.Flatten())
+                        return model
+    else:   
+        if len(layers)>0:
+            if 'dense' in layer_to_be_add.__doc__.lower()[:30]:
+                for previus_layer in np.flip(layers):
+                    if 'flat' in previus_layer.__doc__.lower()[:30] :
+                        break
+                    else:
+                        model.add(tf.keras.layers.Flatten())
+                        return model
 
     return model
 
