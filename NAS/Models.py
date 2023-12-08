@@ -72,7 +72,7 @@ def check_flatten_need(model:tf.keras.Sequential,layer_to_be_add:tf.keras.layers
     if len(layers)>0:
         if 'dense' in layer_to_be_add.__doc__.lower()[:30]:
             for previus_layer in np.flip(layers):
-                if 'dense' in previus_layer.__doc__.lower()[:30] or 'flat' in previus_layer.__doc__.lower()[:30] :
+                if 'flat' in previus_layer.__doc__.lower()[:30] :
                     break
                 elif ('conv' in previus_layer.__doc__.lower()[:30] or 'pool' in previus_layer.__doc__.lower()[:30]):
                     model.add(tf.keras.layers.Flatten())
