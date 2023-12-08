@@ -2,3 +2,5 @@ data/*
 *.csv
 *.pyc
 logs/fit/20231120-005029/train/events.out.tfevents.1700452229.estevanmendes-Inspiron-15-3511.169991.0.v2
+experimentos/*
+los/*
