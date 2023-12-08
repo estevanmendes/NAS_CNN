@@ -195,7 +195,7 @@ if __name__=="__main__":
         
     saving_generation=30
     testing=False
-    id_user='teste_008'
+    id_user='teste_009'
     global id
     id=id_user#+str(datetime.datetime.now())
     max_depth=15
@@ -207,7 +207,7 @@ if __name__=="__main__":
     sys.stdout = open(default_filenames[-1], '+a')
     description=f"""
                 Mundaça linear da probabilidade de mutação de 0.01 até 0.3
-                15 layers - only convolutional, pooling, dropout,None,batchnormalization layers
+                15 layers - dense and convolutional, pooling, dropout,None,batchnormalization layers
                 {start_gen} geração
                 experimento de GA
                 {start_gen}-{end_gen} gerações, {population_size} individuos,{num_of_evaluations} avaliacoes,{max_depth} profundidade maxima,{max_epochs} maximo epocas
