@@ -30,7 +30,7 @@ def main(id,max_depth,generations,population_size,start_gen,saving_generation,nu
     trainning_dataset,validation_dataset,testing_dataset=load_datasets()
 
     pool_size=500
-    if not os.path.isfile(f'arquiteturas_validas_max_depth_{max_depth}_size_{pool_size}.json'): 
+    if not os.path.isfile(f'arquiteturas_validas_max_depth_{max_depth}_size_{pool_size}_conv.json'): 
         print('Pool of valid archtectures about to be created')
         generate_individuals(pool_size,pool_of_features,pool_of_features_probability,max_depth=max_depth)
         
@@ -59,7 +59,7 @@ def main(id,max_depth,generations,population_size,start_gen,saving_generation,nu
         creator.create("Individual", list, fitness=creator.FitnessMax)
         toolbox = base.Toolbox()
         toolbox.register("individual_guess", initIndividual, creator.Individual)
-        toolbox.register("population_guess", initPopulation, list, toolbox.individual_guess, filename=f'arquiteturas_validas_max_depth_{max_depth}_size_{pool_size}.json',trial_name=id)
+        toolbox.register("population_guess", initPopulation, list, toolbox.individual_guess, filename=f'arquiteturas_validas_max_depth_{max_depth}_size_{pool_size}_conv.json',trial_name=id)
 
         toolbox.register("mate", tools.cxOnePoint)
         toolbox.register("mutate", tools.mutUniformInt,low=1,up=len(pool_of_features), indpb=0.1)
@@ -156,7 +156,7 @@ def main(id,max_depth,generations,population_size,start_gen,saving_generation,nu
         #     plt.savefig(f'id_{id}_genealogy_tree.png')
 
         # files=[f'id_{id}_individuals_generation.txt',f'arquiteturas_validas_max_depth_{max_depth}.json']#,f'id_{id}_genealogy_tree.png']
-        files=[f'arquiteturas_validas_max_depth_{max_depth}_size_{pool_size}.json',f'id_{id}_individuals_generation.txt',f'id_{id}_logbook.txt']
+        files=[f'arquiteturas_validas_max_depth_{max_depth}_size_{pool_size}_conv.json',f'id_{id}_individuals_generation.txt',f'id_{id}_logbook.txt']
         filename_logs=save_logs(id)
         files.extend(filename_logs)
         send_results_2_aws(files)
