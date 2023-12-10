@@ -88,7 +88,7 @@ def check_flatten_need(model:tf.keras.Sequential,layer_to_be_add:tf.keras.layers
                 model.add(tf.keras.layers.Flatten())
                 return model
 
-    
+    return model    
 
 
 def check_dimension_compatibility(model:tf.keras.Sequential,layer:tf.keras.layers,pool_of_features,pool_of_features_probability,debug=False) -> tf.keras.layers:
