@@ -33,7 +33,18 @@ def initPopulation(pcls, ind_init,pop_size,trial_name, filename):
     return pcls(ind_init(c) for c in pop)
 
 @output_prints_decorator_factory(*default_filenames)
-def evaluate(individual,trainning_dataset,validation_dataset,testing_dataset,pool_of_features,pool_of_features_probability,fn_no_linear=None,max_epochs=20,num_of_evaluations=1,verbose=0,display=False):
+def evaluate(individual,
+             trainning_dataset,
+             validation_dataset,
+             testing_dataset,
+             pool_of_features,
+             pool_of_features_probability,
+             fn_no_linear=None,
+             max_epochs=20,
+             num_of_evaluations=1,
+             verbose=0,
+             display=False,
+             return_metric_records=False):
         if display:
             print('model {} is being trainned')
     
@@ -64,9 +75,10 @@ def evaluate(individual,trainning_dataset,validation_dataset,testing_dataset,poo
         if num_of_evaluations>1:
             metrics_mean=np.mean(metrics)
             metrics_std=np.std(metrics)
+            metrics_max=np.max(metrics)
             print('\n')
             print(f'individual:{individual}')
-            print(f'metrics mean:{metrics_mean:.5f}, std:{metrics_std:.5f}, samples:{len(metrics)}')
+            print(f'metrics mean:{metrics_mean:.5f}, std:{metrics_std:.5f},max:{metrics_max:.5f}, samples:{len(metrics)}')
             print('\n')
         else:
             metrics_mean=metrics[-1]
@@ -74,5 +86,8 @@ def evaluate(individual,trainning_dataset,validation_dataset,testing_dataset,poo
         if fn_no_linear!=None:
             metrics_mean=fn_no_linear(metrics_mean)
         
-        return metrics_mean,
+        if return_metric_records:
+            return metrics_mean,metrics
+        else:
+            return metrics_mean,
 
