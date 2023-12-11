@@ -2,7 +2,7 @@ import tensorflow as tf
 import pandas as pd
 import numpy as np 
 
-def load_datasets():
+def load_datasets(paths=['trainning_dataset.csv','validation_dataset.csv','testing_dataset.csv']):
     class Dataframe2ImageDataset:
         @staticmethod
         def load_image(filepath):
@@ -24,9 +24,9 @@ def load_datasets():
             # self.dataset=dataset
             return dataset
         
-    trainning_df=pd.read_csv('trainning_dataset.csv')
-    validation_df=pd.read_csv('validation_dataset.csv')
-    testing_df=pd.read_csv('testing_dataset.csv')
+    trainning_df=pd.read_csv(paths[0])
+    validation_df=pd.read_csv(paths[1])
+    testing_df=pd.read_csv(paths[2])
 
     training_dataset=Dataframe2ImageDataset(trainning_df,'path','binary_label_code').create_dataset()
     validation_dataset=Dataframe2ImageDataset(validation_df,'path','binary_label_code').create_dataset()
