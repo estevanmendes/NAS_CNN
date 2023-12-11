@@ -21,7 +21,7 @@ for ind in [sol_ind_006,sol_ind_008,sol_ind_012,sol_ind_007]:
                                                 num_of_evaluations=5,
                                                 return_metric_records=True
                                                 )
-    with open('best_results_analysis.txt','+a') as f:
+    with open('best_results_analysis_conv.txt','+a') as f:
         f.write(str(ind)+'\n')
         f.write(str(metric)+'\n')
         f.write(str(metric_records)+'\n')
