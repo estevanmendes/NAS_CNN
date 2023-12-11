@@ -4,6 +4,7 @@ from NAS.GA import *
 from NAS.Models import *
 from NAS.Pool import *
 from NAS.__init__ import *
+import argparse
 
 sol_ind_009=[26, 15, 10, 15, 4, 15, 3, 16, 33, 21, 16, 33, 35, 26, 33]
 sol_ind_010=[33, 33, 33, 12, 14, 15, 33, 35, 35, 21, 14, 33, 3, 29, 36]
@@ -24,3 +25,16 @@ for ind in [sol_ind_009,sol_ind_010,sol_ind_011]:
         f.write(str(ind)+'\n')
         f.write(str(metric)+'\n')
         f.write(str(metric_records)+'\n')
+
+
+if __name__=="__main__":
+
+    parser = argparse.ArgumentParser(description="",formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("-g", "--gpu",  help="")
+    args = parser.parse_args()
+    config = vars(args)
+    print(config)
+    if config['gpu']:
+        os.environ['CUDA_VISIBLE_DEVICES'] = str(config['gpu'])
+    else:
+        os.environ['CUDA_VISIBLE_DEVICES'] = '2'
